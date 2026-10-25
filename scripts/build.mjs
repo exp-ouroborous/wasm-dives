@@ -1,7 +1,7 @@
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { build } from "esbuild";
-import { assertPagesFileLimits, buildManifest } from "./manifest.mjs";
+import { assertPagesFileLimits, buildManifest, bundleOutputs } from "./manifest.mjs";
 import { classicServiceWorker } from "./sw-bundle.mjs";
 import { vendorRuntime } from "./vendor.mjs";
 
@@ -16,11 +16,13 @@ await cp(join(root, "site"), dist, { recursive: true });
 const groups = {};
 for (const [language, spec] of Object.entries(runtimes)) {
   const copied = await vendorRuntime(join(root, "node_modules"), dist, spec);
+  let fetched = null;
   if (spec.bundle) {
     // The runtime's JS uses bundler-style asset imports (import url from "./x.wasm"),
     // so bundle its worker in place: assets keep their vendored paths and become
     // relative URLs.
-    await build({
+    const { metafile } = await build({
+      metafile: true,
       entryPoints: [join(dist, spec.bundle.entry)],
       outbase: join(dist, "run"),
       outdir: join(dist, "run"),
@@ -35,8 +37,9 @@ for (const [language, spec] of Object.entries(runtimes)) {
       external: ["process", "module", "fs", "path", "url", "crypto", "ws", "worker_threads", "perf_hooks", "node:*"],
       logLevel: "warning",
     });
+    fetched = bundleOutputs(metafile, dist);
   }
-  groups[language] = spec.bundle ? [spec.vendorDir, spec.bundle.entry] : [spec.vendorDir];
+  groups[language] = fetched ?? [spec.vendorDir];
   console.log(`vendored ${spec.package}@${spec.version}: ${copied.length} files`);
 }
 

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>C# in your browser · learn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" />
+    <link rel="stylesheet" href="../wasm-assets/card.css" />
+  </head>
+  <body style="--accent: #68217a; --accent-dark: #4f1a5c">
+    <main class="page">
+      <a class="back" href="/learn/">← learn</a>
+
+      <header class="hero">
+        <span class="chip">C#</span>
+        <h1>C# in your browser</h1>
+        <p>Real C# compiled by Roslyn, running on .NET WebAssembly — nothing leaves the page.</p>
+      </header>
+
+      <section class="panel" id="runtime" aria-labelledby="runtime-title">
+        <h2 id="runtime-title">Runtime</h2>
+        <p>
+          The first Run downloads the C# compiler and the .NET runtime into a sandbox on a separate origin.
+          Later visits load them from your browser's cache.
+        </p>
+        <div class="status" id="runtime-status" role="status">Not loaded yet — press Run to download the C# runtime.</div>
+        <progress id="runtime-progress" max="1" value="0"></progress>
+        <dl class="runtime-grid">
+          <div><dt>Downloaded</dt><dd id="runtime-bytes">—</dd></div>
+          <div><dt>.NET version</dt><dd id="runtime-version">—</dd></div>
+          <div><dt>Compiler</dt><dd>Roslyn via WasmSharp 0.10.2</dd></div>
+        </dl>
+        <p class="notice" id="runtime-notice" hidden></p>
+      </section>
+
+      <section class="panel" id="scratchpad" aria-labelledby="scratchpad-title">
+        <h2 id="scratchpad-title">C# scratchpad</h2>
+        <p>Write top-level C# statements and run them. Stop ends a runaway program by shutting down its worker.</p>
+        <p class="notice">
+          This in-browser compiler ships a trimmed .NET library, so a few APIs (for example <code>Math.PI</code>,
+          <code>Stopwatch</code>, and format specifiers inside <code>$"…"</code>) report as missing. Most of the
+          language — records, pattern matching, LINQ, tuples, raw strings — works.
+        </p>
+        <textarea id="scratchpad-input" spellcheck="false" aria-label="C# source"></textarea>
+        <div class="actions">
+          <button id="scratchpad-run" type="button">Run C#</button>
+          <button id="scratchpad-stop" class="secondary" type="button" disabled>Stop</button>
+        </div>
+        <pre id="scratchpad-output" aria-live="polite">Output will appear here.</pre>
+      </section>
+
+      <section class="panel" id="experiments" aria-labelledby="experiments-title">
+        <h2 id="experiments-title">Experiments</h2>
+        <p>Ready-made C# programs that show off the language. Each is compiled and run exactly like the scratchpad.</p>
+        <div class="actions" id="experiment-buttons"></div>
+        <p id="experiment-blurb"></p>
+        <pre id="experiment-output" aria-live="polite">Pick an experiment.</pre>
+      </section>
+
+      <section class="panel" id="probes" aria-labelledby="probes-title">
+        <h2 id="probes-title">Runtime probes</h2>
+        <p>Ask .NET what it can see from inside the browser sandbox.</p>
+        <div class="actions"><button id="probe-run" type="button">Run probes</button></div>
+        <pre id="probe-output" aria-live="polite">Probe results will appear here.</pre>
+      </section>
+    </main>
+
+    <iframe
+      id="runner"
+      class="runner-frame"
+      title="C# sandbox runner"
+      sandbox="allow-scripts allow-same-origin"
+      aria-hidden="true"
+      tabindex="-1"
+    ></iframe>
+    <script type="module" src="./card.mjs"></script>
+  </body>
+</html>

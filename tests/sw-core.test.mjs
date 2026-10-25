@@ -24,10 +24,23 @@ test("indexManifest maps every path to its size, hash and group", () => {
 
 test("ProgressTracker accumulates loaded bytes against the total", () => {
   const tracker = new ProgressTracker(10);
-  assert.deepEqual(tracker.add(4), { loaded: 4, total: 10 });
-  assert.deepEqual(tracker.add(6), { loaded: 10, total: 10 });
+  assert.deepEqual(tracker.add("/a", 4, 4), { loaded: 4, total: 10 });
+  assert.deepEqual(tracker.add("/b", 6, 6), { loaded: 10, total: 10 });
+});
+
+test("ProgressTracker counts a file's bytes once even when it is fetched again", () => {
+  const tracker = new ProgressTracker(10);
+  tracker.add("/a", 2, 4);
+  tracker.add("/a", 2, 4);
+  assert.deepEqual(tracker.add("/a", 4, 4), { loaded: 4, total: 10 });
 });
 
 test("ProgressTracker.fail reports the failed path", () => {
   assert.deepEqual(new ProgressTracker(10).fail("/run/x"), { failed: "/run/x" });
+});
+
+test("ProgressTracker.complete reports the full total once the runtime has booted", () => {
+  const tracker = new ProgressTracker(10);
+  tracker.add("/a", 7, 7);
+  assert.deepEqual(tracker.complete(), { loaded: 10, total: 10 });
 });
