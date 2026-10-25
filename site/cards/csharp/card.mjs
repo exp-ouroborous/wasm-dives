@@ -1,8 +1,11 @@
 import { createRunnerClient, runnerOrigin } from "../wasm-assets/runner-client.mjs";
 import { formatProgress, formatRunResult } from "../wasm-assets/format.mjs";
 import { EXPERIMENTS, PROBE_SOURCE, SCRATCHPAD_DEFAULT } from "./programs.mjs";
+import { languageLogo, languageStyle } from "../wasm-assets/languages.mjs";
 
 const $ = (selector) => document.querySelector(selector);
+document.body.setAttribute("style", languageStyle("csharp"));
+$("#language-logo").append(languageLogo("csharp"));
 const PHASE_TEXT = {
   idle: "Not loaded yet — press Run to download the C# runtime.",
   downloading: "Downloading the C# compiler and .NET runtime…",
