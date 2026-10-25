@@ -43,8 +43,25 @@ public static partial class Runner
     public static string Version() => Environment.Version.ToString();
 
     /// <summary>Returns JSON: { ok, stdout, stderr, diagnostics: [{ id, message, severity, start, end }] }.</summary>
+    // Console is process-wide, so runs that overlap (one awaiting while another
+    // starts) take turns rather than share redirected output.
+    static readonly SemaphoreSlim OneAtATime = new(1, 1);
+
     [JSExport]
     public static async Task<string> Run(string source)
+    {
+        await OneAtATime.WaitAsync();
+        try
+        {
+            return await CompileAndRun(source);
+        }
+        finally
+        {
+            OneAtATime.Release();
+        }
+    }
+
+    static async Task<string> CompileAndRun(string source)
     {
         var tree = CSharpSyntaxTree.ParseText(source, ParseOptions, "Program.cs");
         var compilation = CSharpCompilation.Create(
@@ -82,18 +99,25 @@ public static partial class Runner
         return Result(true, stdout.ToString(), stderr.ToString(), diagnostics);
     }
 
-    // Top-level code with `await` compiles to an async <Main>$ plus a sync entry
-    // point that blocks on it, and blocking deadlocks single-threaded
-    // WebAssembly, so await the async body directly when there is one.
+    // An async Main (explicit, or top-level code with `await`) compiles to the
+    // async method plus a synthesized sync entry point <Main> that blocks on it,
+    // and blocking deadlocks single-threaded WebAssembly, so await the async
+    // method directly instead.
     static async Task Invoke(Assembly assembly)
     {
         var entry = assembly.EntryPoint ?? throw new InvalidOperationException("The program has no entry point.");
-        var body = entry.DeclaringType?.GetMethod("<Main>$", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
-        var target = body is not null && typeof(Task).IsAssignableFrom(body.ReturnType) ? body : entry;
+        var target = entry.Name == "<Main>" ? AsyncMain(entry) ?? entry : entry;
         object?[]? arguments = target.GetParameters().Length == 0 ? null : [Array.Empty<string>()];
         var returned = target.Invoke(null, arguments);
         if (returned is Task task) await task;
     }
+
+    static MethodInfo? AsyncMain(MethodInfo wrapper) =>
+        wrapper.DeclaringType?
+            .GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
+            .FirstOrDefault(m => m.Name is "Main" or "<Main>$"
+                && typeof(Task).IsAssignableFrom(m.ReturnType)
+                && m.GetParameters().Length == wrapper.GetParameters().Length);
 
     static Exception Unwrap(Exception error) =>
         error is TargetInvocationException { InnerException: { } inner } ? inner : error;
