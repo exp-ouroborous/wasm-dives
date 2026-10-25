@@ -23,7 +23,7 @@ export function serveRuntime({ boot, run, post = (m) => self.postMessage(m), tar
     const started = performance.now();
     let result;
     try {
-      result = await run(runtime, data.source);
+      result = await run(runtime, data.source, data.options ?? {});
     } catch (error) {
       result = { ok: false, stdout: "", stderr: message(error), diagnostics: [] };
     }

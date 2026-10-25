@@ -98,3 +98,14 @@ test("phase, progress, runtime and notice reach their callbacks", () => {
     ["notice", "m"],
   ]);
 });
+
+test("run forwards options when given and omits them otherwise", async () => {
+  const { client, sent } = harness();
+  client.run("x", { dialect: "c" }).catch(() => {});
+  await tick();
+  assert.deepEqual(sent[0].data.options, { dialect: "c" });
+  client.stop();
+  client.run("y").catch(() => {});
+  await tick();
+  assert.equal(Object.hasOwn(sent.at(-1).data, "options"), false);
+});

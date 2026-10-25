@@ -14,8 +14,18 @@ export function isAllowedOrigin(origin, allowed = ALLOWED_PARENT_ORIGINS) {
   return allowed.includes(origin);
 }
 
+const DIALECTS = new Set(["c", "cpp"]);
+
+/** Run options are optional; when present, only a known dialect is allowed. */
+function validOptions(options) {
+  if (options === undefined) return true;
+  if (options === null || typeof options !== "object" || Array.isArray(options)) return false;
+  const keys = Object.keys(options);
+  return keys.length === 1 && keys[0] === "dialect" && DIALECTS.has(options.dialect);
+}
+
 const PARENT_TYPES = {
-  run: (m) => typeof m.id === "string" && typeof m.source === "string",
+  run: (m) => typeof m.id === "string" && typeof m.source === "string" && validOptions(m.options),
   stop: () => true,
 };
 

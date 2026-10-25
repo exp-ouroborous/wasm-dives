@@ -56,13 +56,13 @@ export function createRunnerClient({ iframe, origin, win = window, loaded = ifra
   });
 
   return {
-    run(source) {
+    run(source, options) {
       if (pending) settle("reject", new Error("superseded"));
       const id = crypto.randomUUID();
       const promise = new Promise((resolve, reject) => {
         pending = { id, resolve, reject };
       });
-      send({ type: "run", id, source });
+      send(options === undefined ? { type: "run", id, source } : { type: "run", id, source, options });
       return promise;
     },
     stop() {
