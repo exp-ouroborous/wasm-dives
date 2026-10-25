@@ -77,3 +77,8 @@ test("rejectedCall names a well-formed call the runner refuses, so it can answer
   assert.equal(rejectedCall({ protocol: "other", type: "call", id: "9" }), null);
   assert.equal(rejectedCall({ protocol: PROTOCOL, type: "call", id: "1", engine: "json", input: {} }), null, "valid calls are not rejected");
 });
+
+test("the diff engine is callable with two texts and labels", () => {
+  const message = { protocol: PROTOCOL, type: "call", id: "1", engine: "diff", input: { left: "a", right: "b", from_label: "left", to_label: "right" } };
+  assert.deepEqual(parseMessage(message), message);
+});

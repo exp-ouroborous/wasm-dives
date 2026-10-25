@@ -24,7 +24,7 @@ function validOptions(options) {
   return keys.length === 1 && keys[0] === "dialect" && DIALECTS.has(options.dialect);
 }
 
-const ENGINES = new Set(["regex", "json", "markdown"]);
+const ENGINES = new Set(["regex", "json", "markdown", "diff"]);
 const MAX_INPUT_CHARS = 1_000_000;
 
 /** Engine inputs are flat: strings, booleans, finite numbers and arrays of strings, at most 1 MB as JSON. */
