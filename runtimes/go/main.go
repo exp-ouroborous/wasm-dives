@@ -16,6 +16,14 @@ import (
 	"github.com/traefik/yaegi/stdlib"
 )
 
+// use gives an interpreter the standard library and the compiled-in libraries.
+func use(i *interp.Interpreter) error {
+	if err := i.Use(stdlib.Symbols); err != nil {
+		return err
+	}
+	return i.Use(Symbols)
+}
+
 func run(_ js.Value, args []js.Value) any {
 	source := args[0].String()
 	return js.Global().Get("Promise").New(js.FuncOf(func(_ js.Value, p []js.Value) any {
@@ -24,7 +32,7 @@ func run(_ js.Value, args []js.Value) any {
 			var stdout, stderr bytes.Buffer
 			i := interp.New(interp.Options{Stdout: &stdout, Stderr: &stderr})
 			message := ""
-			if err := i.Use(stdlib.Symbols); err != nil {
+			if err := use(i); err != nil {
 				message = err.Error()
 			} else if _, err := i.Eval(source); err != nil {
 				message = err.Error()
@@ -59,7 +67,7 @@ func load(_ js.Value, args []js.Value) any {
 	name, source := args[0].String(), args[1].String()
 	return promise(func() (string, string) {
 		i := interp.New(interp.Options{})
-		if err := i.Use(stdlib.Symbols); err != nil {
+		if err := use(i); err != nil {
 			return err.Error(), ""
 		}
 		if _, err := i.Eval(source); err != nil {

@@ -10,6 +10,16 @@ import { splitFile } from "./parts.mjs";
 
 const OUTPUTS = ["yaegi.wasm", "wasm_exec.js", "LICENSE"];
 
+/** Libraries compiled into the runtime (spec.libraries, "module@version") ship their LICENSE too. */
+export function libraryLicenses(spec) {
+  return (spec.libraries ?? []).map((library) => ({
+    from: `${library}/LICENSE`,
+    to: `LICENSE.${library.split("@")[0].split("/").pop()}`,
+  }));
+}
+
+const outputs = (spec) => [...OUTPUTS, ...libraryLicenses(spec).map((license) => license.to)];
+
 /** Hash of the runner's sources (every file in its folder) plus the build command. */
 export async function sourceFingerprint(sourceDir, buildCommand) {
   const hash = createHash("sha256").update(buildCommand);
@@ -32,9 +42,9 @@ export function assertDocker(image, run = execFileSync) {
   }
 }
 
-async function cached(dir) {
+async function cached(dir, spec) {
   try {
-    await Promise.all(OUTPUTS.map((name) => access(join(dir, name))));
+    await Promise.all(outputs(spec).map((name) => access(join(dir, name))));
     return true;
   } catch {
     return false;
@@ -48,6 +58,7 @@ function buildScript(spec) {
     `GOOS=js GOARCH=wasm go build -mod=readonly -trimpath -ldflags="-s -w" -o /out/yaegi.wasm .`,
     'cp "$(go env GOROOT)/misc/wasm/wasm_exec.js" /out/wasm_exec.js',
     `cp "$(go env GOMODCACHE)/${spec.module}@${spec.version}/LICENSE" /out/LICENSE`,
+    ...libraryLicenses(spec).map((license) => `cp "$(go env GOMODCACHE)/${license.from}" /out/${license.to}`),
   ].join(" && ");
 }
 
@@ -61,7 +72,7 @@ export async function yaegiCachePath(root, spec) {
 export async function buildYaegi(root, dist, spec) {
   const script = buildScript(spec);
   const cache = await yaegiCachePath(root, spec);
-  if (!(await cached(cache))) {
+  if (!(await cached(cache, spec))) {
     assertDocker(spec.image);
     await mkdir(cache, { recursive: true });
     execFileSync("docker", ["run", "--rm", "-v", `${join(root, spec.source)}:/src:ro`, "-v", `${cache}:/out`, spec.image, "sh", "-c", script], {
@@ -70,9 +81,9 @@ export async function buildYaegi(root, dist, spec) {
   }
   const target = join(dist, spec.vendorDir);
   await mkdir(target, { recursive: true });
-  for (const name of OUTPUTS) await cp(join(cache, name), join(target, name));
+  for (const name of outputs(spec)) await cp(join(cache, name), join(target, name));
   const descriptor = await splitFile(join(target, "yaegi.wasm"), spec.partBytes);
   await writeFile(join(target, "yaegi.wasm.json"), `${JSON.stringify(descriptor, null, 2)}\n`);
-  // LICENSE ships for attribution but is never fetched, so it stays out of the progress total.
+  // The LICENSE files ship for attribution but are never fetched, so it stays out of the progress total.
   return [...descriptor.parts, "yaegi.wasm.json", "wasm_exec.js"].map((name) => `${spec.vendorDir}/${name}`);
 }

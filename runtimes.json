@@ -9,7 +9,8 @@
       "run/csharp/worker.js",
       "run/shared/runtime-worker.mjs",
       "run/csharp/engines/regex.cs",
-      "run/csharp/engines/json.cs"
+      "run/csharp/engines/json.cs",
+      "run/csharp/engines/markdown.cs"
     ]
   },
   "go": {
@@ -19,7 +20,10 @@
       "image": "golang:1.22.12@sha256:1cf6c45ba39db9fd6db16922041d074a63c935556a05c5ccb62d181034df7f02",
       "source": "runtimes/go",
       "vendorDir": "run/vendor/yaegi/0.16.1",
-      "partBytes": 20971520
+      "partBytes": 20971520,
+      "libraries": [
+        "github.com/yuin/goldmark@v1.8.6"
+      ]
     },
     "files": [
       "run/go/worker.js",
@@ -27,7 +31,8 @@
       "run/shared/runtime-worker.mjs",
       "run/shared/parts.mjs",
       "run/go/engines/regex.go",
-      "run/go/engines/json.go"
+      "run/go/engines/json.go",
+      "run/go/engines/markdown.go"
     ]
   },
   "cpp": {

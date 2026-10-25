@@ -24,4 +24,6 @@ export async function checkCase(language, testCase, convert) {
   for (const text of testCase.contains ?? []) assert.ok(html.includes(text), `${testCase.name}: expected ${JSON.stringify(text)} in ${JSON.stringify(html)}`);
   for (const text of testCase.not_contains ?? []) assert.ok(!html.toLowerCase().includes(text.toLowerCase()), `${testCase.name}: unexpected ${JSON.stringify(text)} in ${JSON.stringify(html)}`);
   for (const pattern of testCase.matches ?? []) assert.match(html, new RegExp(pattern), `${testCase.name}: ${pattern} in ${JSON.stringify(html)}`);
+  // Escaped text such as &lt;img onerror=…&gt; is harmless; a real tag carrying a handler is not.
+  for (const pattern of testCase.not_matches ?? []) assert.doesNotMatch(html, new RegExp(pattern, "i"), `${testCase.name}: ${pattern} in ${JSON.stringify(html)}`);
 }
