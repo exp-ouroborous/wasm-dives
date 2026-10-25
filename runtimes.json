@@ -71,6 +71,7 @@
     "notice": "pyodide.md",
     "files": [
       "run/python/worker.js",
+      "run/python/harness.mjs",
       "run/python/py-result.mjs",
       "run/shared/runtime-worker.mjs"
     ]

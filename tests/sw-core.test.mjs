@@ -44,3 +44,10 @@ test("ProgressTracker.complete reports the full total once the runtime has boote
   tracker.add("/a", 7, 7);
   assert.deepEqual(tracker.complete(), { loaded: 10, total: 10 });
 });
+
+test("a runner page load (navigation inside /run/) makes the service worker re-read the manifest", async () => {
+  const { refreshesManifest } = await import("../site/run/sw-core.mjs");
+  assert.equal(refreshesManifest({ mode: "navigate", url: "https://wasm-dives.pages.dev/run/python/" }), true);
+  assert.equal(refreshesManifest({ mode: "cors", url: "https://wasm-dives.pages.dev/run/vendor/x.wasm" }), false);
+  assert.equal(refreshesManifest({ mode: "navigate", url: "https://wasm-dives.pages.dev/cards/python/" }), false);
+});

@@ -1,6 +1,15 @@
 // Pure helpers for the sandbox service worker. The build inlines this file
 // into dist/run/sw.js (a classic worker), so it must not import anything.
 
+/**
+ * A runner page load starts a new session: the service worker drops its
+ * in-memory manifest so a deploy that left sw.js unchanged is still picked up
+ * (otherwise a long-lived worker keeps serving the previous deploy's files).
+ */
+export function refreshesManifest({ mode, url }) {
+  return mode === "navigate" && new URL(url).pathname.startsWith("/run/");
+}
+
 /** path -> { size, sha384, group } for every runtime file in the manifest. */
 export function indexManifest(manifest) {
   const index = new Map();
