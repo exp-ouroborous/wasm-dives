@@ -1,21 +1,10 @@
 {
   "csharp": {
-    "package": "@wasmsharp/core",
-    "version": "0.10.2",
-    "vendorDir": "run/vendor/wasmsharp/0.10.2",
-    "exclude": [
-      "WasmCompiler.js",
-      "worker.js",
-      "index.js",
-      "main.js"
-    ],
-    "bundle": {
-      "entry": "run/csharp/worker.js",
-      "loaders": [
-        ".wasm",
-        ".dat",
-        ".dll"
-      ]
-    }
+    "dotnet": {
+      "project": "runtimes/csharp/CSharpRunner.csproj",
+      "vendorDir": "run/vendor/csharp-runner",
+      "module": "run/csharp/runtime.mjs"
+    },
+    "files": ["run/csharp/worker.js", "run/shared/runtime-worker.mjs"]
   }
 }

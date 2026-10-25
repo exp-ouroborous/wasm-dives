@@ -36,8 +36,7 @@ var rows = csv.Split('\\n', StringSplitOptions.RemoveEmptyEntries)
 
 foreach (var country in rows.GroupBy(r => r.Country).OrderByDescending(g => g.Count()))
 {
-    var people = country.Aggregate(0L, (total, r) => total + r.Population);
-    Console.WriteLine($"{country.Key.PadRight(8)} {country.Count()} cities  {people.ToString("N0")} people");
+    Console.WriteLine($"{country.Key,-8} {country.Count()} cities  {country.Sum(r => r.Population),12:N0} people");
 }
 `,
   },
@@ -51,14 +50,12 @@ using System.Collections.Generic;
 var shapes = new List<Shape> { new Circle(1.5), new Rect(2, 3), new Square(2.5) };
 foreach (var shape in shapes)
 {
-    Console.WriteLine($"{shape.ToString().PadRight(30)} area = {Area(shape).ToString("F2")}");
+    Console.WriteLine($"{shape,-30} area = {Area(shape),6:F2}");
 }
-
-const double Pi = 3.141592653589793;
 
 static double Area(Shape shape) => shape switch
 {
-    Circle c => Pi * c.Radius * c.Radius,
+    Circle c => Math.PI * c.Radius * c.Radius,
     Square s => s.Side * s.Side,
     Rect r => r.Width * r.Height,
     _ => throw new ArgumentException("unknown shape"),
@@ -73,18 +70,19 @@ record Square(double Side) : Shape;
 ];
 
 export const PROBE_SOURCE = `using System;
+using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.InteropServices;
 
 Console.WriteLine($".NET version: {Environment.Version}");
-Console.WriteLine($"OS version: {Environment.OSVersion}");
+Console.WriteLine($"OS: {RuntimeInformation.OSDescription} ({RuntimeInformation.ProcessArchitecture})");
 Console.WriteLine($"64-bit process: {Environment.Is64BitProcess}");
 Console.WriteLine($"Processor count: {Environment.ProcessorCount}");
 Console.WriteLine($"Culture: {CultureInfo.CurrentCulture.Name}");
-Console.WriteLine($"GC heap bytes: {GC.GetTotalMemory(false).ToString("N0")}");
+Console.WriteLine($"GC heap bytes: {GC.GetTotalMemory(false):N0}");
 
-var started = DateTime.UtcNow;
+var stopwatch = Stopwatch.StartNew();
 long sum = 0;
 for (var i = 0; i < 10_000_000; i++) sum += i;
-var elapsed = (DateTime.UtcNow - started).TotalMilliseconds;
-Console.WriteLine($"10M-iteration loop: {elapsed.ToString("F0")} ms (sum {sum.ToString("N0")})");
+Console.WriteLine($"10M-iteration loop: {stopwatch.ElapsedMilliseconds} ms (sum {sum:N0})");
 `;

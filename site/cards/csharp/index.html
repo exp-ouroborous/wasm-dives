@@ -30,7 +30,7 @@
         <dl class="runtime-grid">
           <div><dt>Downloaded</dt><dd id="runtime-bytes">—</dd></div>
           <div><dt>.NET version</dt><dd id="runtime-version">—</dd></div>
-          <div><dt>Compiler</dt><dd>Roslyn via WasmSharp 0.10.2</dd></div>
+          <div><dt>Compiler</dt><dd>Roslyn 5.0 on .NET 10, full library</dd></div>
         </dl>
         <p class="notice" id="runtime-notice" hidden></p>
       </section>
@@ -38,11 +38,6 @@
       <section class="panel" id="scratchpad" aria-labelledby="scratchpad-title">
         <h2 id="scratchpad-title">C# scratchpad</h2>
         <p>Write top-level C# statements and run them. Stop ends a runaway program by shutting down its worker.</p>
-        <p class="notice">
-          This in-browser compiler ships a trimmed .NET library, so a few APIs (for example <code>Math.PI</code>,
-          <code>Stopwatch</code>, and format specifiers inside <code>$"…"</code>) report as missing. Most of the
-          language — records, pattern matching, LINQ, tuples, raw strings — works.
-        </p>
         <textarea id="scratchpad-input" spellcheck="false" aria-label="C# source"></textarea>
         <div class="actions">
           <button id="scratchpad-run" type="button">Run C#</button>

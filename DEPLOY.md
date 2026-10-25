@@ -9,6 +9,10 @@ npm ci
 npm run build      # -> dist/ (site, vendored runtimes, manifest, sw.js)
 ```
 
+The build needs the .NET SDK pinned in `runtimes/csharp/global.json`
+(10.0.100, no workloads): it publishes `runtimes/csharp/` (Roslyn on .NET
+WebAssembly) into `dist/run/vendor/csharp-runner/<content hash>/`.
+
 The build fails if any file in `dist/` exceeds Cloudflare Pages' 25 MiB limit.
 
 ## First-time setup (owner)
@@ -19,7 +23,9 @@ npx wrangler pages project create wasm-dives --production-branch main
 
 Git-integrated builds are a dashboard step: connect the GitHub repo
 `exp-ouroborous/wasm-dives`, with build command `npm ci && npm run build` and
-output directory `dist`.
+output directory `dist`. Cloudflare's build image has no .NET SDK, so that
+build command would first need to install the pinned SDK; deploys are manual
+for now.
 
 ## Manual deploy
 

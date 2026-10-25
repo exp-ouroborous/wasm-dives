@@ -1,0 +1,132 @@
+// Compiles and runs one visitor program per call, entirely in this WebAssembly
+// runtime. Exported to JavaScript (site/run/csharp/worker.js), which owns the
+// worker and its lifetime; a runaway program is stopped by terminating it.
+
+using System.Collections.Immutable;
+using System.Reflection;
+using System.Runtime.InteropServices.JavaScript;
+using System.Runtime.Loader;
+using System.Text;
+using System.Text.Json;
+using Basic.Reference.Assemblies;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
+[assembly: System.Runtime.Versioning.SupportedOSPlatform("browser")]
+
+public static partial class Runner
+{
+    // The SDK's implicit usings for a console app, so snippets need no boilerplate.
+    const string ImplicitUsings = """
+        global using System;
+        global using System.Collections.Generic;
+        global using System.IO;
+        global using System.Linq;
+        global using System.Net.Http;
+        global using System.Threading;
+        global using System.Threading.Tasks;
+        """;
+
+    static readonly CSharpParseOptions ParseOptions = new(LanguageVersion.Latest);
+    static readonly SyntaxTree UsingsTree = CSharpSyntaxTree.ParseText(ImplicitUsings, ParseOptions, "Usings.g.cs");
+    static readonly CSharpCompilationOptions CompilationOptions = new(
+        OutputKind.ConsoleApplication,
+        optimizationLevel: OptimizationLevel.Release,
+        allowUnsafe: true,
+        nullableContextOptions: NullableContextOptions.Enable,
+        // Single-threaded WebAssembly cannot block on other threads.
+        concurrentBuild: false);
+
+    public static void Main() { }
+
+    [JSExport]
+    public static string Version() => Environment.Version.ToString();
+
+    /// <summary>Returns JSON: { ok, stdout, stderr, diagnostics: [{ id, message, severity, start, end }] }.</summary>
+    [JSExport]
+    public static async Task<string> Run(string source)
+    {
+        var tree = CSharpSyntaxTree.ParseText(source, ParseOptions, "Program.cs");
+        var compilation = CSharpCompilation.Create(
+            "Program", [UsingsTree, tree], Net100.References.All, CompilationOptions);
+
+        using var image = new MemoryStream();
+        var emitted = compilation.Emit(image);
+        var diagnostics = emitted.Diagnostics
+            .Where(d => d.Severity >= DiagnosticSeverity.Warning && (!d.Location.IsInSource || d.Location.SourceTree == tree))
+            .ToList();
+        if (!emitted.Success) return Result(false, "", "", diagnostics);
+
+        var stdout = new StringWriter();
+        var stderr = new StringWriter();
+        var (originalOut, originalError) = (Console.Out, Console.Error);
+        Console.SetOut(stdout);
+        Console.SetError(stderr);
+        var context = new AssemblyLoadContext("visitor", isCollectible: true);
+        try
+        {
+            image.Position = 0;
+            await Invoke(context.LoadFromStream(image));
+        }
+        catch (Exception error)
+        {
+            stderr.WriteLine($"Unhandled exception. {VisitorTrace(Unwrap(error))}");
+        }
+        finally
+        {
+            Console.Out.Flush();
+            Console.SetOut(originalOut);
+            Console.SetError(originalError);
+            context.Unload();
+        }
+        return Result(true, stdout.ToString(), stderr.ToString(), diagnostics);
+    }
+
+    // Top-level code with `await` compiles to an async <Main>$ plus a sync entry
+    // point that blocks on it, and blocking deadlocks single-threaded
+    // WebAssembly, so await the async body directly when there is one.
+    static async Task Invoke(Assembly assembly)
+    {
+        var entry = assembly.EntryPoint ?? throw new InvalidOperationException("The program has no entry point.");
+        var body = entry.DeclaringType?.GetMethod("<Main>$", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
+        var target = body is not null && typeof(Task).IsAssignableFrom(body.ReturnType) ? body : entry;
+        object?[]? arguments = target.GetParameters().Length == 0 ? null : [Array.Empty<string>()];
+        var returned = target.Invoke(null, arguments);
+        if (returned is Task task) await task;
+    }
+
+    static Exception Unwrap(Exception error) =>
+        error is TargetInvocationException { InnerException: { } inner } ? inner : error;
+
+    // The visitor's frames only: stop at the first frame of this host (the
+    // reflection call into their code, or Runner itself), which sit below it.
+    static string VisitorTrace(Exception error) =>
+        string.Join('\n', error.ToString().Split('\n').TakeWhile(line =>
+            !line.TrimStart().StartsWith("at System.Reflection.") && !line.TrimStart().StartsWith("at Runner.")));
+
+    static string Result(bool ok, string stdout, string stderr, IEnumerable<Diagnostic> diagnostics)
+    {
+        using var buffer = new MemoryStream();
+        using (var json = new Utf8JsonWriter(buffer))
+        {
+            json.WriteStartObject();
+            json.WriteBoolean("ok", ok);
+            json.WriteString("stdout", stdout);
+            json.WriteString("stderr", stderr);
+            json.WriteStartArray("diagnostics");
+            foreach (var d in diagnostics)
+            {
+                json.WriteStartObject();
+                json.WriteString("id", d.Id);
+                json.WriteString("message", d.GetMessage());
+                json.WriteString("severity", d.Severity.ToString());
+                json.WriteNumber("start", d.Location.SourceSpan.Start);
+                json.WriteNumber("end", d.Location.SourceSpan.End);
+                json.WriteEndObject();
+            }
+            json.WriteEndArray();
+            json.WriteEndObject();
+        }
+        return Encoding.UTF8.GetString(buffer.ToArray());
+    }
+}
