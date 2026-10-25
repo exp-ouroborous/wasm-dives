@@ -39,7 +39,7 @@ Roslyn on .NET.
 |---|---|---|
 | Python | Pyodide (existing dive) | moves onto the sandbox runner in a later phase |
 | C# | WasmSharp `@wasmsharp/core@0.10.2` (Roslyn on .NET WASM) | ~15 MB gzipped; single maintainer — pinned and self-hosted |
-| Go | GopherJS playground compiler (Go → JS, in a worker) | Go 1.21 semantics; say so on the card |
+| Go | Yaegi v0.16.1 (Go interpreter) built from source to WebAssembly by us | Owner decision 2026-10-25: GopherJS compiles Go to JavaScript, not WASM, so it is out. ~37 MB raw (~5–8 MB compressed), split into parts to fit Pages. The card says it is an interpreter with Go 1.22-era gaps (no `min`/`max`, no generic stdlib functions such as `slices.Sort`, no inference for two type parameters) and runs slower than compiled Go |
 | C/C++ | YoWASP Clang `@yowasp/clang` (pinned) | ~25 MB compressed; upstream archived 2026-03 — pin, mirror if needed; largest files exceed Pages' 25 MiB, so loaded from jsDelivr with verified hashes |
 | Rust | rubrc (real rustc, WASI) | **Experimental** label; ~60 MB; needs COOP/COEP; author says not production-ready |
 
@@ -122,7 +122,7 @@ landed.
 1. **Foundation + C# card.** wasm-dives repo, service worker, runner protocol,
    card shell, C# card, `/learn/csharp/` proxy, `/learn` index split into
    language and tool rows.
-2. **Go card** (GopherJS).
+2. **Go card** (Yaegi compiled to WASM, split into parts).
 3. **C/C++ card** (YoWASP Clang, jsDelivr-hosted files through the same
    verifying service worker).
 4. **Python card onto the sandbox runner.** The Pyodide scratchpad moves into
