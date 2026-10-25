@@ -72,3 +72,11 @@ test("formatDiagnostics prints line:col for diagnostics that carry a line", asyn
     "2:15: undefined: x",
   );
 });
+
+test("formatRunResult shows a runtime failure as the program's output then stderr, without a compile headline", async () => {
+  const { formatRunResult } = await import("../site/cards/wasm-assets/format.mjs");
+  assert.equal(
+    formatRunResult({ ok: false, stdout: "before the crash\n", stderr: "2:19: panic: main.main(...)\nassignment to entry in nil map", diagnostics: [], ms: 3 }),
+    "before the crash\n\nstderr:\n2:19: panic: main.main(...)\nassignment to entry in nil map\n\n(3 ms)",
+  );
+});
