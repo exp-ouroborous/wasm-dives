@@ -28,9 +28,12 @@ button, textarea { font: inherit; }
 .hero h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.05; margin: 10px 0 12px; letter-spacing: -0.02em; }
 .hero p { color: var(--muted); max-width: 640px; margin: 0; line-height: 1.55; }
 .chip {
-  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 7px; padding: 4px 12px 4px 6px; border-radius: 999px;
   background: var(--accent); color: #fff; font-weight: 700; font-size: 13px;
 }
+.chip-logo { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+.chip-logo svg { width: 14px; height: 14px; fill: var(--accent); }
+.hero { border-top: 4px solid var(--keyline, var(--accent)); margin-top: 18px; }
 
 .panel {
   margin-top: 22px; padding: 20px 22px; border: 1px solid var(--border);

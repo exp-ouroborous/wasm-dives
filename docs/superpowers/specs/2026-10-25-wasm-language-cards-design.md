@@ -22,6 +22,17 @@ possible — not a benchmark, not a language comparison, not a tutorial.
    HTML, text diff. You pick a tool, then a language; the tool runs on an
    engine written in that language and compiled to WASM ahead of time.
 
+## Branding
+
+Every place a language appears wears that language's own colour and logo:
+its card on `/learn`, its card page, and each option in a tool's language
+picker (the dropdown is a coloured logo plus the name, not plain text). One
+shared table, `site/cards/wasm-assets/languages.mjs` (label, colour, darker
+shade, keyline, logo path), feeds all of them; the tools import it through
+`/learn/wasm-assets/`. Logos are CC0 paths from simple-icons. C# has no CC0
+logo there, so it uses .NET's logo and purple *(call)*, since the card runs
+Roslyn on .NET.
+
 ## Languages
 
 | Language | Runtime (scratchpad) | Notes |
