@@ -21,6 +21,7 @@
     },
     "files": [
       "run/go/worker.js",
+      "run/go/yaegi-result.mjs",
       "run/shared/runtime-worker.mjs",
       "run/shared/parts.mjs"
     ]
