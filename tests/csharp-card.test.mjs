@@ -31,16 +31,13 @@ test("programs offer two experiments, a probe and a default scratchpad", () => {
   assert.match(SCRATCHPAD_DEFAULT, /Console\.WriteLine/);
 });
 
-// WasmSharp 0.10.2 compiles against trimmed assemblies; these compile errors
-// were observed in the browser. Keep the bundled programs clear of them.
-const TRIMMED_APIS = [/Math\.PI/, /OSDescription/, /ProcessArchitecture/, /Stopwatch/, /\{[^}]*,-?\d+[^}]*\}/, /\{[^}]*:[A-Z]\d*\}/, /\.Sum\(/];
-
-test("bundled programs avoid APIs missing from WasmSharp's trimmed library", () => {
-  for (const source of [SCRATCHPAD_DEFAULT, PROBE_SOURCE, ...EXPERIMENTS.map((e) => e.source)]) {
-    for (const api of TRIMMED_APIS) assert.doesNotMatch(source, api);
-  }
+// These failed against WasmSharp's trimmed library; our own build ships the
+// full one, so the bundled programs use them on purpose.
+test("bundled programs use everyday APIs the full .NET library provides", () => {
+  const all = [SCRATCHPAD_DEFAULT, PROBE_SOURCE, ...EXPERIMENTS.map((e) => e.source)].join("\n");
+  for (const api of [/Math\.PI/, /Stopwatch/, /RuntimeInformation\.OSDescription/, /\{[^}]*,-?\d+:[A-Z]\d*\}/, /\.Sum\(/]) assert.match(all, api);
 });
 
-test("the card says the C# library is trimmed", () => {
-  assert.match(html, /trimmed/);
+test("the card no longer warns about a trimmed library", () => {
+  assert.doesNotMatch(html, /trimmed/);
 });

@@ -2,6 +2,7 @@ import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { build } from "esbuild";
 import { assertPagesFileLimits, buildManifest, bundleOutputs } from "./manifest.mjs";
+import { publishDotnetRuntime } from "./dotnet.mjs";
 import { classicServiceWorker } from "./sw-bundle.mjs";
 import { vendorRuntime } from "./vendor.mjs";
 
@@ -15,6 +16,12 @@ await cp(join(root, "site"), dist, { recursive: true });
 
 const groups = {};
 for (const [language, spec] of Object.entries(runtimes)) {
+  if (spec.dotnet) {
+    // Our own .NET WebAssembly build (see runtimes/), published from source.
+    groups[language] = [...(await publishDotnetRuntime(root, dist, spec.dotnet)), ...(spec.files ?? [])];
+    console.log(`published ${spec.dotnet.project}: ${groups[language][0]}`);
+    continue;
+  }
   const copied = await vendorRuntime(join(root, "node_modules"), dist, spec);
   let fetched = null;
   if (spec.bundle) {
