@@ -23,7 +23,8 @@
       "vendorDir": "run/vendor/yaegi/0.16.1",
       "partBytes": 20971520,
       "libraries": [
-        "github.com/yuin/goldmark@v1.8.6"
+        "github.com/yuin/goldmark@v1.8.6",
+        "github.com/sergi/go-diff@v1.4.0"
       ]
     },
     "files": [
@@ -33,7 +34,8 @@
       "run/shared/parts.mjs",
       "run/go/engines/regex.go",
       "run/go/engines/json.go",
-      "run/go/engines/markdown.go"
+      "run/go/engines/markdown.go",
+      "run/go/engines/diff.go"
     ]
   },
   "cpp": {
