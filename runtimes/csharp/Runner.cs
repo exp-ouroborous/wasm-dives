@@ -112,12 +112,18 @@ public static partial class Runner
         if (returned is Task task) await task;
     }
 
-    static MethodInfo? AsyncMain(MethodInfo wrapper) =>
-        wrapper.DeclaringType?
+    // The wrapper's parameters are exactly the async method's, which tells it
+    // apart from any other Main overloads.
+    static MethodInfo? AsyncMain(MethodInfo wrapper)
+    {
+        var parameters = wrapper.GetParameters().Select(p => p.ParameterType).ToArray();
+        return wrapper.DeclaringType?
             .GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
             .FirstOrDefault(m => m.Name is "Main" or "<Main>$"
+                && !m.IsGenericMethodDefinition
                 && typeof(Task).IsAssignableFrom(m.ReturnType)
-                && m.GetParameters().Length == wrapper.GetParameters().Length);
+                && m.GetParameters().Select(p => p.ParameterType).SequenceEqual(parameters));
+    }
 
     static Exception Unwrap(Exception error) =>
         error is TargetInvocationException { InnerException: { } inner } ? inner : error;
