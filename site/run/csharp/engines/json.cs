@@ -148,6 +148,22 @@ public static class Engine
     static bool Flag(JsonElement root, string name) =>
         root.TryGetProperty(name, out var v) && v.ValueKind == JsonValueKind.True;
 
+    // Sort keys by Unicode code point, like the other engines. Ordinal compares
+    // UTF-16 units, which puts U+1F600 (a surrogate pair) before U+E000.
+    static readonly Comparer<string?> CodePointOrder = Comparer<string?>.Create((a, b) =>
+    {
+        var left = (a ?? "").EnumerateRunes().GetEnumerator();
+        var right = (b ?? "").EnumerateRunes().GetEnumerator();
+        while (true)
+        {
+            var moreLeft = left.MoveNext();
+            var moreRight = right.MoveNext();
+            if (!moreLeft || !moreRight) return moreLeft.CompareTo(moreRight);
+            var order = left.Current.Value.CompareTo(right.Current.Value);
+            if (order != 0) return order;
+        }
+    });
+
     static string Kind(JsonElement value) => value.ValueKind switch
     {
         JsonValueKind.Object => "object",
@@ -214,8 +230,7 @@ public static class Engine
         var members = isObject
             ? value.EnumerateObject().Select(p => (key: (string?)p.Name, item: p.Value)).ToList()
             : value.EnumerateArray().Select(item => (key: (string?)null, item)).ToList();
-        // Ordinal sorts by UTF-16 unit; that matches code-point order outside the surrogate range.
-        if (isObject && sortKeys) members = members.OrderBy(m => m.key, StringComparer.Ordinal).ToList();
+        if (isObject && sortKeys) members = members.OrderBy(m => m.key, CodePointOrder).ToList();
         output.Append(isObject ? '{' : '[');
         if (members.Count > 0)
         {

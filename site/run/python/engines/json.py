@@ -4,6 +4,7 @@
 
 import difflib
 import json
+import math
 import re
 
 ENGINE = "Python json"
@@ -171,7 +172,7 @@ def _remove_jsonc_trailing_commas(source):
 
         if char == '"':
             in_string = True
-        elif char == "," and _next_significant(source, i + 1) in "}]":
+        elif char == "," and _next_significant(source, i + 1) in ("}", "]"):
             chars[i] = " "
         i += 1
 
@@ -184,8 +185,35 @@ def _json_source(source, allow_jsonc=False):
     return _remove_jsonc_trailing_commas(_strip_jsonc_comments(source))
 
 
+class _NumberError(ValueError):
+    def __init__(self, message, token):
+        super().__init__(message)
+        self.token = token
+
+
+def _reject_constant(name):
+    raise _NumberError(f"{name} is not valid JSON", name)
+
+
+def _finite_float(text):
+    value = float(text)
+    if math.isinf(value):
+        raise _NumberError(f"Number {text} is out of range for a Python float", text)
+    return value
+
+
+# Python's json accepts NaN/Infinity and turns 1e400 into inf (which it then
+# writes as the invalid token Infinity); reject both, at the token's position.
+def _strict_loads(text):
+    try:
+        return json.loads(text, parse_constant=_reject_constant, parse_float=_finite_float)
+    except _NumberError as exc:
+        match = re.search(r"(?<![\w.\"])" + re.escape(exc.token) + r"(?![\w.])", text)
+        raise json.JSONDecodeError(str(exc), text, match.start() if match else 0) from None
+
+
 def _loads_json(source, allow_jsonc=False):
-    return json.loads(_json_source(source, allow_jsonc))
+    return _strict_loads(_json_source(source, allow_jsonc))
 
 
 def _diff_segments(before, after):
@@ -381,7 +409,7 @@ def _quote_bare_keys(source):
 
 def _is_json_number(token):
     try:
-        value = json.loads(token)
+        value = _strict_loads(token)
     except json.JSONDecodeError:
         return False
     return isinstance(value, (int, float)) and not isinstance(value, bool)
@@ -491,7 +519,7 @@ def heal_json(source, indent=2, sort_keys=True, allow_jsonc=False):
         repairs.extend(value_repairs)
 
         try:
-            parsed = json.loads(repaired)
+            parsed = _strict_loads(repaired)
         except json.JSONDecodeError as repaired_error:
             return _json_error_response(repaired_error, repairs=[], repaired=False)
     else:
