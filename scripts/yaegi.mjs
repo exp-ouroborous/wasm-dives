@@ -51,11 +51,16 @@ function buildScript(spec) {
   ].join(" && ");
 }
 
+/** Where the build caches Yaegi for this source and build command. */
+export async function yaegiCachePath(root, spec) {
+  // Any change to the runner's source, go.mod/go.sum or the build command is a new cache entry.
+  return yaegiCacheDir(root, spec, await sourceFingerprint(join(root, spec.source), `${spec.image}\n${buildScript(spec)}`));
+}
+
 /** Build (or reuse) Yaegi's wasm, vendor it into dist in parts, and return the manifest entries. */
 export async function buildYaegi(root, dist, spec) {
   const script = buildScript(spec);
-  // Any change to the runner's source, go.mod/go.sum or the build command is a new cache entry.
-  const cache = yaegiCacheDir(root, spec, await sourceFingerprint(join(root, spec.source), `${spec.image}\n${script}`));
+  const cache = await yaegiCachePath(root, spec);
   if (!(await cached(cache))) {
     assertDocker(spec.image);
     await mkdir(cache, { recursive: true });
