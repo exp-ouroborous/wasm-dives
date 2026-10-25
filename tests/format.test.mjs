@@ -33,3 +33,34 @@ test("formatDiagnostics prints one line per diagnostic with its span", () => {
     "CS0103 (3–12): The name 'WriteLine' does not exist in the current context",
   );
 });
+
+test("formatRunResult trims trailing newlines before the timing line", async () => {
+  const { formatRunResult } = await import("../site/cards/wasm-assets/format.mjs");
+  assert.equal(
+    formatRunResult({ ok: true, stdout: "hello\n", stderr: "", diagnostics: [], ms: 12 }),
+    "hello\n\n(12 ms)",
+  );
+});
+
+test("formatRunResult shows only error diagnostics for a failed compile", async () => {
+  const { formatRunResult } = await import("../site/cards/wasm-assets/format.mjs");
+  const out = formatRunResult({
+    ok: false,
+    stdout: "",
+    stderr: "",
+    ms: 5,
+    diagnostics: [
+      { id: "CS8021", message: "warn", severity: "Warning", start: 0, end: 0 },
+      { id: "CS0103", message: "bad name", severity: "Error", start: 3, end: 12 },
+    ],
+  });
+  assert.equal(out, "CS0103 (3–12): bad name\n\n(5 ms)");
+});
+
+test("formatRunResult appends stderr under a label", async () => {
+  const { formatRunResult } = await import("../site/cards/wasm-assets/format.mjs");
+  assert.equal(
+    formatRunResult({ ok: true, stdout: "", stderr: "Unhandled exception\n", diagnostics: [], ms: 1 }),
+    "(no output)\n\nstderr:\nUnhandled exception\n\n(1 ms)",
+  );
+});

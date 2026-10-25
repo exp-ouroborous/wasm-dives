@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFile, readdir, stat } from "node:fs/promises";
-import { join, relative, sep } from "node:path";
+import { join, relative, resolve, sep } from "node:path";
 
 async function listFiles(dir) {
   const entries = await readdir(dir, { withFileTypes: true, recursive: true });
@@ -48,4 +48,15 @@ export async function assertPagesFileLimits(distDir, maxBytes = 25 * 1024 * 1024
       throw new Error(`${relative(distDir, file)} is ${size} bytes, over the ${maxBytes}-byte Pages limit`);
     }
   }
+}
+
+/**
+ * What a bundled runtime actually fetches: the bundle plus every asset esbuild
+ * emitted for it (from its metafile). Used as the manifest group so the
+ * progress total excludes vendored files the browser never requests.
+ */
+export function bundleOutputs(metafile, distDir, cwd = process.cwd()) {
+  return Object.keys(metafile.outputs)
+    .map((output) => relative(distDir, resolve(cwd, output)).split(sep).join("/"))
+    .sort();
 }

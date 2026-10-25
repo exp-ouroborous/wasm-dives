@@ -44,3 +44,19 @@ test("buildManifest accepts a single file as a group entry", async () => {
   const manifest = await buildManifest(dir, { demo: ["run/vendor/x/1.0.0/sub/b.js"] });
   assert.deepEqual(manifest.groups.demo.files.map((f) => f.path), ["/run/vendor/x/1.0.0/sub/b.js"]);
 });
+
+test("bundleOutputs lists the bundle and the assets it references, as dist-relative paths", async () => {
+  const { bundleOutputs } = await import("../scripts/manifest.mjs");
+  const metafile = {
+    outputs: {
+      "/abs/dist/run/csharp/worker.js": { imports: [] },
+      "/abs/dist/run/vendor/rt/1.0.0/dotnet.native.wasm": {},
+      "/abs/dist/run/vendor/rt/1.0.0/de/x.resources.dll": {},
+    },
+  };
+  assert.deepEqual(bundleOutputs(metafile, "/abs/dist"), [
+    "run/csharp/worker.js",
+    "run/vendor/rt/1.0.0/de/x.resources.dll",
+    "run/vendor/rt/1.0.0/dotnet.native.wasm",
+  ]);
+});

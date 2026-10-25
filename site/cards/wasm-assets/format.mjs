@@ -29,3 +29,16 @@ export function capOutput(text, max = 200_000) {
 export function formatDiagnostics(diagnostics) {
   return diagnostics.map((d) => `${d.id} (${d.start}–${d.end}): ${d.message}`).join("\n");
 }
+
+/** The text a card shows for one run: output or compile errors, stderr, timing. */
+export function formatRunResult({ ok, stdout, stderr, diagnostics, ms }) {
+  const parts = [];
+  if (ok) {
+    parts.push(stdout.trimEnd() || "(no output)");
+  } else {
+    parts.push(formatDiagnostics(diagnostics.filter((d) => d.severity === "Error")) || "(failed with no diagnostics)");
+  }
+  if (stderr) parts.push(`stderr:\n${stderr.trimEnd()}`);
+  parts.push(`(${ms} ms)`);
+  return capOutput(parts.join("\n\n"));
+}

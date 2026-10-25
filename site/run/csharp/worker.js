@@ -10,8 +10,8 @@ async function compileAndRun(module, source) {
 
 const booting = (async () => {
   const module = await WasmSharpWorker.initializeAsync({ assembliesUrl: new URL("./", import.meta.url).href }, {});
-  const probe = await compileAndRun(module, "System.Console.Write(System.Environment.Version);");
-  postMessage({ type: "booted", version: probe.stdOut ?? "" });
+  const probe = await compileAndRun(module, "System.Console.WriteLine(System.Environment.Version);");
+  postMessage({ type: "booted", version: (probe.stdOut ?? "").trim() });
   return module;
 })();
 

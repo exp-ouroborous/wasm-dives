@@ -28,7 +28,7 @@ async function readVerified(path, entry) {
     if (done) break;
     chunks.push(value);
     length += value.byteLength;
-    progress.postMessage({ type: "progress", group: entry.group, path, bytes: value.byteLength });
+    progress.postMessage({ type: "progress", group: entry.group, path, bytes: value.byteLength, size: entry.size });
   }
   const body = new Uint8Array(length);
   let offset = 0;
@@ -48,7 +48,7 @@ async function serve(request) {
   const cache = await caches.open(state.cacheName);
   const cached = await cache.match(path);
   if (cached) {
-    progress.postMessage({ type: "progress", group: entry.group, path, bytes: entry.size });
+    progress.postMessage({ type: "progress", group: entry.group, path, bytes: entry.size, size: entry.size });
     return cached;
   }
 

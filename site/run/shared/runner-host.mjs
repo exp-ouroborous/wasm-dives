@@ -67,6 +67,7 @@ export function startRunnerHost({ language, workerUrl, win = window }) {
     worker = new Worker(workerUrl, { type: "module" });
     worker.addEventListener("message", ({ data }) => {
       if (data?.type === "booted") {
+        if (tracker) post({ type: "progress", ...tracker.complete() });
         dispatch({ type: "booted" });
         post({ type: "runtime", language, version: data.version });
       } else if (data?.type === "result") {
@@ -88,7 +89,7 @@ export function startRunnerHost({ language, workerUrl, win = window }) {
   progress.addEventListener("message", ({ data }) => {
     if (data?.group !== language || !worker) return;
     if (data.type === "progress" && tracker && state.phase === "downloading") {
-      const update = tracker.add(data.bytes);
+      const update = tracker.add(data.path, data.bytes, data.size);
       post({ type: "progress", ...update });
       dispatch({ type: "download-progress", ...update });
     } else if (data.type === "download-failed" && (state.phase === "downloading" || state.phase === "starting")) {
