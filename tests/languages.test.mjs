@@ -20,6 +20,13 @@ test("C# uses the .NET logo and purple, Python its own", () => {
   assert.equal(LANGUAGES.python.logo.title, "Python");
 });
 
+test("Go uses its own blue and logo", () => {
+  assert.equal(LANGUAGES.go.color, "#00add8");
+  assert.equal(LANGUAGES.go.dark, "#007d9c");
+  assert.equal(LANGUAGES.go.keyline, "#5dc9e2");
+  assert.equal(LANGUAGES.go.logo.title, "Go");
+});
+
 test("languageStyle sets the card accent from the language colour", () => {
   assert.equal(languageStyle("csharp"), "--accent: #512bd4; --accent-dark: #3d1fa3; --keyline: #9b87f5");
 });
@@ -29,5 +36,5 @@ test("the C# card page takes its colour and logo from the shared table", async (
   const card = await readFile(new URL("../site/cards/csharp/card.mjs", import.meta.url), "utf8");
   assert.match(html, /id="language-logo"/);
   assert.doesNotMatch(html, /--accent: #68217a/);
-  assert.match(card, /LANGUAGES\.csharp|languageStyle\("csharp"\)/);
+  assert.match(card, /language: "csharp"/);
 });
