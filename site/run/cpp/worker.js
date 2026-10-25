@@ -6,7 +6,7 @@
 import { serveRuntime } from "../shared/runtime-worker.mjs";
 import { installPartsFetch } from "../shared/parts.mjs";
 import { compileArgs, toRunResult } from "./clang-result.mjs";
-import { engineArgs, engineResult } from "./engine-host.mjs";
+import { compileEngine, engineArgs, engineResult } from "./engine-host.mjs";
 
 const CLANG = new URL("../vendor/yowasp-clang/22.0.0-git20542-10/gen/", import.meta.url);
 const SHIM = new URL("../vendor/browser_wasi_shim/0.4.2/dist/index.js", import.meta.url);
@@ -19,17 +19,18 @@ async function engineModule(runClang, name) {
     const response = await fetch(new URL(`./engines/${name}.cc`, import.meta.url));
     if (!response.ok) throw new Error(`no ${name} engine for C/C++ (HTTP ${response.status})`);
     const errors = collector();
-    let files;
+    const readLibrary = async (path) => {
+      const library = await fetch(new URL(`../vendor/${path}`, import.meta.url));
+      if (!library.ok) throw new Error(`${path}: HTTP ${library.status}`);
+      return library.text();
+    };
+    let wasm;
     try {
-      files = await runClang(
-        ["clang++", "engine.cc", "-std=c++23", "-O2", "-fno-exceptions", "-o", "engine.wasm"],
-        { "engine.cc": await response.text() },
-        { stdout: errors.write, stderr: errors.write },
-      );
-    } catch {
-      throw new Error(`the ${name} engine failed to compile: ${errors.text}`);
+      wasm = await compileEngine(runClang, name, await response.text(), readLibrary, { stdout: errors.write, stderr: errors.write });
+    } catch (error) {
+      throw new Error(`the ${name} engine failed to compile: ${errors.text || error.message}`);
     }
-    engines.set(name, await WebAssembly.compile(files["engine.wasm"]));
+    engines.set(name, await WebAssembly.compile(wasm));
   }
   return engines.get(name);
 }

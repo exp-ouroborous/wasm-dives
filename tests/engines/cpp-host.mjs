@@ -3,14 +3,14 @@
 import { readFile } from "node:fs/promises";
 import { runClang } from "@yowasp/clang";
 import { File, OpenFile, ConsoleStdout, WASI, WASIProcExit } from "@bjorn3/browser_wasi_shim";
-import { engineArgs, engineResult } from "../../site/run/cpp/engine-host.mjs";
+import { compileEngine, engineArgs, engineResult } from "../../site/run/cpp/engine-host.mjs";
+
+// The build copies runtimes/<library>/ to run/vendor/<library>/<version>/.
+const readLibrary = (path) => readFile(new URL(`../../runtimes/${path.split("/")[0]}/${path.split("/").pop()}`, import.meta.url), "utf8");
 
 export async function cppEngine(name) {
   const source = await readFile(new URL(`../../site/run/cpp/engines/${name}.cc`, import.meta.url), "utf8");
-  const { "engine.wasm": wasm } = await runClang(
-    ["clang++", "engine.cc", "-std=c++23", "-O2", "-fno-exceptions", "-o", "engine.wasm"],
-    { "engine.cc": source },
-  );
+  const wasm = await compileEngine(runClang, name, source, readLibrary);
   const module = await WebAssembly.compile(wasm);
   return async function analyze(input) {
     let stdout = "";
