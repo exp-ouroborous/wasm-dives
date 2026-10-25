@@ -105,7 +105,8 @@
       "run/shared/runtime-worker.mjs",
       "run/python/engines/regex.py",
       "run/python/engines/json.py",
-      "run/python/engines/markdown.py"
+      "run/python/engines/markdown.py",
+      "run/python/engines/diff.py"
     ],
     "wheels": {
       "dir": "run/vendor/python-wheels",

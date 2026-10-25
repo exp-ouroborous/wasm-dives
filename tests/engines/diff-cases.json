@@ -1,0 +1,14 @@
+[
+  {"name": "identical inputs", "input": {"left": "a\nb", "right": "a\nb", "from_label": "left", "to_label": "right"}, "expect": {"diff": "", "added": 0, "removed": 0, "changed": 0, "context": 0, "kinds": ["equal", "equal"]}},
+  {"name": "one line replaced", "input": {"left": "a\nb\nc", "right": "a\nx\nc", "from_label": "left", "to_label": "right"}, "expect": {"diff": "--- left\n+++ right\n@@ -1,3 +1,3 @@\n a\n-b\n+x\n c", "added": 1, "removed": 1, "changed": 1, "context": 2, "kinds": ["equal", "replace", "equal"]}},
+  {"name": "line added at the end", "input": {"left": "a\nb", "right": "a\nb\nc", "from_label": "left", "to_label": "right"}, "expect": {"diff": "--- left\n+++ right\n@@ -1,2 +1,3 @@\n a\n b\n+c", "added": 1, "removed": 0, "changed": 0, "kinds": ["equal", "equal", "insert"]}},
+  {"name": "line removed at the start", "input": {"left": "a\nb\nc", "right": "b\nc", "from_label": "left", "to_label": "right"}, "expect": {"diff": "--- left\n+++ right\n@@ -1,3 +1,2 @@\n-a\n b\n c", "added": 0, "removed": 1, "kinds": ["delete", "equal", "equal"]}},
+  {"name": "empty left side", "input": {"left": "", "right": "x\ny", "from_label": "left", "to_label": "right"}, "expect": {"diff": "--- left\n+++ right\n@@ -0,0 +1,2 @@\n+x\n+y", "added": 2, "removed": 0, "kinds": ["insert", "insert"]}},
+  {"name": "both empty", "input": {"left": "", "right": "", "from_label": "left", "to_label": "right"}, "expect": {"diff": "", "kinds": []}},
+  {"name": "CRLF and a final newline do not count as changes", "input": {"left": "a\r\nb\r\n", "right": "a\nb", "from_label": "left", "to_label": "right"}, "expect": {"diff": "", "kinds": ["equal", "equal"]}},
+  {"name": "non-ASCII and emoji lines", "input": {"left": "café\n😀", "right": "café\n😃", "from_label": "left", "to_label": "right"}, "expect": {"diff": "--- left\n+++ right\n@@ -1,2 +1,2 @@\n café\n-😀\n+😃", "kinds": ["equal", "replace"]}},
+  {"name": "far-apart changes make two hunks", "input": {"left": "l1\nl2\nl3\nl4\nl5\nl6\nl7\nl8\nl9\nl10\nl11\nl12\nl13\nl14\nl15\nl16\nl17\nl18\nl19\nl20", "right": "l1\nL2\nl3\nl4\nl5\nl6\nl7\nl8\nl9\nl10\nl11\nl12\nl13\nl14\nl15\nl16\nl17\nL18\nl19\nl20", "from_label": "left", "to_label": "right"}, "expect": {"hunks": ["@@ -1,5 +1,5 @@", "@@ -15,6 +15,6 @@"], "added": 2, "removed": 2, "context": 9}},
+  {"name": "nearby changes share one hunk", "input": {"left": "l1\nl2\nl3\nl4\nl5\nl6\nl7\nl8\nl9\nl10\nl11\nl12", "right": "l1\nL2\nl3\nl4\nl5\nl6\nl7\nL8\nl9\nl10\nl11\nl12", "from_label": "left", "to_label": "right"}, "expect": {"hunks": ["@@ -1,11 +1,11 @@"]}},
+  {"name": "labels name the two sides", "input": {"left": "a", "right": "b", "from_label": "old.txt", "to_label": "new.txt"}, "expect": {"diff": "--- old.txt\n+++ new.txt\n@@ -1 +1 @@\n-a\n+b"}},
+  {"name": "reordered lines still give a valid diff", "input": {"left": "a\nb\nc\nd\ne\nf\ng", "right": "a\nc\nb\nd\nf\ne\ng\nx", "from_label": "left", "to_label": "right"}, "expect": {}}
+]
