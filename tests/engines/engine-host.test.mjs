@@ -60,3 +60,7 @@ test("compileEngine compiles a library-free engine in one step", async () => {
   assert.equal(await compileEngine(runClang, "json", "// engine", async () => ""), "w");
   assert.deepEqual(calls, [["clang++", "engine.cc", "-std=c++23", "-O2", "-fno-exceptions", "-o", "engine.wasm"]]);
 });
+
+test("engineArgs passes diff inputs: left, right, then the two labels", () => {
+  assert.deepEqual(engineArgs("diff", { left: "a", right: "b", from_label: "old", to_label: "new" }), ["diff", "a", "b", "old", "new"]);
+});

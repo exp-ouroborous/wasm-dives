@@ -7,12 +7,14 @@ const ARGS = {
   regex: ["pattern", "text", "replacement", "flags"],
   json: ["action", "source", "indent", "sort_keys", "minify", "allow_jsonc"],
   markdown: ["source", "features", "safe"],
+  diff: ["left", "right", "from_label", "to_label"],
 };
 
 const ENGINE_NAMES = {
   regex: "C++ std::regex (ECMAScript)",
   json: "C++ (hand-written parser)",
   markdown: "md4c 0.6.0",
+  diff: "C++ (hand-written Myers)",
 };
 
 // C libraries an engine is built with, vendored under run/vendor/<dir>/.
@@ -31,6 +33,7 @@ const TRAPPED = {
   }),
   json: (trap) => ({ error: `The engine stopped unexpectedly: ${trap}`, output: "", tree: null, summary: {}, line: null, column: null }),
   markdown: (trap) => ({ error: `The engine stopped unexpectedly: ${trap}`, html: "" }),
+  diff: (trap) => ({ error: `The engine stopped unexpectedly: ${trap}`, diff: "", added: 0, removed: 0, changed: 0, context: 0, rows: [] }),
 };
 
 function arg(value) {
