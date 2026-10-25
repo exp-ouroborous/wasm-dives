@@ -73,7 +73,8 @@
       "run/python/worker.js",
       "run/python/harness.mjs",
       "run/python/py-result.mjs",
-      "run/shared/runtime-worker.mjs"
+      "run/shared/runtime-worker.mjs",
+      "run/python/engines/regex.py"
     ]
   }
 }
