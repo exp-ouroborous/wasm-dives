@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>C and C++ sandbox runner</title>
+  </head>
+  <body>
+    <noscript>This sandbox runner needs JavaScript.</noscript>
+    <script type="module">
+      import { startRunnerHost } from "../shared/runner-host.mjs";
+      startRunnerHost({ language: "cpp", workerUrl: new URL("./worker.js", import.meta.url) });
+    </script>
+  </body>
+</html>
