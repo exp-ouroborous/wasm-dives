@@ -89,6 +89,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
+  if (refreshesManifest(event.request)) current = null;
   if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
   if (!url.pathname.startsWith("/run/") || url.pathname === MANIFEST_PATH) return;
   event.respondWith(serve(event.request));
