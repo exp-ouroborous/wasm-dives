@@ -6,9 +6,33 @@
 import { serveRuntime } from "../shared/runtime-worker.mjs";
 import { installPartsFetch } from "../shared/parts.mjs";
 import { compileArgs, toRunResult } from "./clang-result.mjs";
+import { engineArgs, engineResult } from "./engine-host.mjs";
 
 const CLANG = new URL("../vendor/yowasp-clang/22.0.0-git20542-10/gen/", import.meta.url);
 const SHIM = new URL("../vendor/browser_wasi_shim/0.4.2/dist/index.js", import.meta.url);
+
+// Tool engines (engines/<name>.cc), each compiled once to a WebAssembly module.
+const engines = new Map();
+
+async function engineModule(runClang, name) {
+  if (!engines.has(name)) {
+    const response = await fetch(new URL(`./engines/${name}.cc`, import.meta.url));
+    if (!response.ok) throw new Error(`no ${name} engine for C/C++ (HTTP ${response.status})`);
+    const errors = collector();
+    let files;
+    try {
+      files = await runClang(
+        ["clang++", "engine.cc", "-std=c++23", "-O2", "-fno-exceptions", "-o", "engine.wasm"],
+        { "engine.cc": await response.text() },
+        { stdout: errors.write, stderr: errors.write },
+      );
+    } catch {
+      throw new Error(`the ${name} engine failed to compile: ${errors.text}`);
+    }
+    engines.set(name, await WebAssembly.compile(files["engine.wasm"]));
+  }
+  return engines.get(name);
+}
 
 function collector() {
   const decoder = new TextDecoder();
@@ -59,5 +83,18 @@ serveRuntime({
       else trap = String(error?.message ? `${error.name}: ${error.message}` : error);
     }
     return toRunResult({ compiled: true, stdout: stdout.text, stderr: stderr.text, exit, trap });
+  },
+  async call({ runClang, shim }, name, input) {
+    const module = await engineModule(runClang, name);
+    const { WASI, WASIProcExit, File, OpenFile, ConsoleStdout } = shim;
+    const stdout = collector();
+    const wasi = new WASI(engineArgs(name, input), [], [new OpenFile(new File([])), new ConsoleStdout(stdout.write), new ConsoleStdout(() => {})]);
+    let trap = null;
+    try {
+      wasi.start(await WebAssembly.instantiate(module, { wasi_snapshot_preview1: wasi.wasiImport }));
+    } catch (error) {
+      if (!(error instanceof WASIProcExit)) trap = String(error?.message ? `${error.name}: ${error.message}` : error);
+    }
+    return engineResult(name, stdout.text, trap);
   },
 });

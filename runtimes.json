@@ -55,7 +55,9 @@
       "run/cpp/worker.js",
       "run/cpp/clang-result.mjs",
       "run/shared/runtime-worker.mjs",
-      "run/shared/parts.mjs"
+      "run/shared/parts.mjs",
+      "run/cpp/engine-host.mjs",
+      "run/cpp/engines/regex.cc"
     ]
   },
   "python": {
