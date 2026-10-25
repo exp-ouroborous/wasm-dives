@@ -8,9 +8,13 @@ import { compileEngine, engineArgs, engineResult } from "../../site/run/cpp/engi
 // The build copies runtimes/<library>/ to run/vendor/<library>/<version>/.
 const readLibrary = (path) => readFile(new URL(`../../runtimes/${path.split("/")[0]}/${path.split("/").pop()}`, import.meta.url), "utf8");
 
-export async function cppEngine(name) {
+// Tests build engines against hardened libc++, so an out-of-bounds container
+// access traps instead of silently reading or writing past the end.
+const HARDENED = ["-D_LIBCPP_HARDENING_MODE=_LIBCPP_HARDENING_MODE_DEBUG"];
+
+export async function cppEngine(name, flags = HARDENED) {
   const source = await readFile(new URL(`../../site/run/cpp/engines/${name}.cc`, import.meta.url), "utf8");
-  const wasm = await compileEngine(runClang, name, source, readLibrary);
+  const wasm = await compileEngine(runClang, name, source, readLibrary, undefined, flags);
   const module = await WebAssembly.compile(wasm);
   return async function analyze(input) {
     let stdout = "";

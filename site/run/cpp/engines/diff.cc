@@ -77,7 +77,9 @@ struct Myers {
     // Walks forward and backward paths until they overlap, then splits there.
     void bisect(int a0, int a1, int b0, int b1) {
         const int n1 = a1 - a0, n2 = b1 - b0;
-        const int max_d = (n1 + n2 + 1) / 2, offset = max_d, length = 2 * max_d;
+        // Diagonals k run from -max_d to max_d, read at k - 1 and k + 1, and the
+        // start sentinel sits at k = 1: size the frontiers for all of them.
+        const int max_d = (n1 + n2 + 1) / 2, offset = max_d + 1, length = 2 * max_d + 3;
         std::vector<int> v1(length, -1), v2(length, -1);
         v1[offset + 1] = 0;
         v2[offset + 1] = 0;
