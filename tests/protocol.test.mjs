@@ -44,3 +44,16 @@ test("parseMessage rejects unknown dialects, extra option keys and non-object op
   assert.equal(parseMessage({ ...base, options: "c" }), null);
   assert.equal(parseMessage({ ...base, options: null }), null);
 });
+
+test("parseMessage accepts an engine call with a known engine and a plain input", () => {
+  const message = { protocol: PROTOCOL, type: "call", id: "1", engine: "regex", input: { pattern: "a", text: "abc", flags: ["ignorecase"], replacement: "" } };
+  assert.deepEqual(parseMessage(message), message);
+});
+
+test("parseMessage rejects calls to unknown engines, non-object inputs and oversized inputs", () => {
+  const base = { protocol: PROTOCOL, type: "call", id: "1", engine: "regex" };
+  assert.equal(parseMessage({ ...base, engine: "shell", input: {} }), null);
+  assert.equal(parseMessage({ ...base, input: "x" }), null);
+  assert.equal(parseMessage({ ...base, input: { nested: { deep: 1 } } }), null);
+  assert.equal(parseMessage({ ...base, input: { text: "x".repeat(1_000_001) } }), null);
+});

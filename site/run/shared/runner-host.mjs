@@ -93,7 +93,7 @@ export function startRunnerHost({ language, workerUrl, win = window, deps = brow
         post({ type: "runtime", language, version: data.version });
       } else if (data?.type === "boot-failed") {
         fail({ type: "boot-failed" }, BOOT_FAILED);
-      } else if (data?.type === "result") {
+      } else if (data?.type === "result" || data?.type === "called") {
         dispatch({ type: "result", id: data.id });
         post(data);
       }
@@ -127,12 +127,21 @@ export function startRunnerHost({ language, workerUrl, win = window, deps = brow
       dispatch({ type: "stop-requested" });
       return;
     }
-    if (state.pendingRunId) return; // one run at a time; the card disables Run meanwhile
+    if (state.pendingRunId) {
+      // One run or call at a time; the card disables Run and tool pages wait.
+      if (message.type === "call") post({ type: "called", id: message.id, ok: false, output: null, error: "busy", ms: 0 });
+      return;
+    }
     dispatch({ type: "run-requested", id: message.id });
     const target = await ensureWorker();
     if (target && target === worker && state.pendingRunId === message.id) {
-      const { id, source, options } = message;
-      target.postMessage(options === undefined ? { type: "run", id, source } : { type: "run", id, source, options });
+      if (message.type === "call") {
+        const { id, engine, input } = message;
+        target.postMessage({ type: "call", id, engine, input });
+      } else {
+        const { id, source, options } = message;
+        target.postMessage(options === undefined ? { type: "run", id, source } : { type: "run", id, source, options });
+      }
     }
   });
 }

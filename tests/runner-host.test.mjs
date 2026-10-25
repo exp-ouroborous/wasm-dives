@@ -100,3 +100,14 @@ test("the runner host forwards run options to the worker", async () => {
   await tick();
   assert.deepEqual(workers[0].posted, [{ type: "run", id: "r1", source: "x", options: { dialect: "c" } }]);
 });
+
+test("the runner host forwards engine calls and relays the reply", async () => {
+  const { send, fromWorker, workers, parentMessages, control } = harness();
+  control.resolve(true);
+  send({ type: "call", id: "c1", engine: "regex", input: { pattern: "a", text: "a" } });
+  await tick();
+  await tick();
+  assert.deepEqual(workers[0].posted, [{ type: "call", id: "c1", engine: "regex", input: { pattern: "a", text: "a" } }]);
+  fromWorker(workers[0], { type: "called", id: "c1", ok: true, output: { match_count: 1 }, ms: 1 });
+  assert.ok(parentMessages.some((m) => m.type === "called" && m.id === "c1" && m.output.match_count === 1));
+});

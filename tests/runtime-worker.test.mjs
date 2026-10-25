@@ -59,3 +59,25 @@ test("run receives the options, or an empty object when none were sent", async (
   assert.deepEqual(seen, [{ dialect: "c" }, {}]);
   assert.equal(posted.length, 3);
 });
+
+test("call messages go to the runtime's call handler, and its errors become ok: false", async () => {
+  const { posted, target, post, deliver } = scope();
+  serveRuntime({
+    boot: async () => ({ runtime: "rt", version: "v" }),
+    run: async () => ({}),
+    call: async (runtime, engine, input) => {
+      if (input.fail) throw new Error("engine broke");
+      return { engine, echoed: input.text, runtime };
+    },
+    post,
+    target,
+  });
+  deliver({ type: "call", id: "a", engine: "regex", input: { text: "hi" } });
+  await tick(); await tick();
+  deliver({ type: "call", id: "b", engine: "regex", input: { fail: true } });
+  await tick(); await tick();
+  const called = posted.filter((m) => m.type === "called");
+  assert.deepEqual({ ...called[0], ms: 0 }, { type: "called", id: "a", ok: true, output: { engine: "regex", echoed: "hi", runtime: "rt" }, error: "", ms: 0 });
+  assert.equal(called[1].ok, false);
+  assert.equal(called[1].error, "engine broke");
+});

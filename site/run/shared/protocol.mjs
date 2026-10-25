@@ -24,8 +24,22 @@ function validOptions(options) {
   return keys.length === 1 && keys[0] === "dialect" && DIALECTS.has(options.dialect);
 }
 
+const ENGINES = new Set(["regex"]);
+const MAX_INPUT_CHARS = 1_000_000;
+
+/** Engine inputs are flat: strings and arrays of strings, at most 1 MB as JSON. */
+function validInput(input) {
+  if (input === null || typeof input !== "object" || Array.isArray(input)) return false;
+  for (const value of Object.values(input)) {
+    const ok = typeof value === "string" || (Array.isArray(value) && value.every((v) => typeof v === "string"));
+    if (!ok) return false;
+  }
+  return JSON.stringify(input).length <= MAX_INPUT_CHARS;
+}
+
 const PARENT_TYPES = {
   run: (m) => typeof m.id === "string" && typeof m.source === "string" && validOptions(m.options),
+  call: (m) => typeof m.id === "string" && ENGINES.has(m.engine) && validInput(m.input),
   stop: () => true,
 };
 
