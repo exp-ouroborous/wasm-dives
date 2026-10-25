@@ -9,5 +9,9 @@
   },
   "devDependencies": {
     "esbuild": "0.25.11"
+  },
+  "dependencies": {
+    "@bjorn3/browser_wasi_shim": "0.4.2",
+    "@yowasp/clang": "22.0.0-git20542-10"
   }
 }

@@ -47,3 +47,28 @@ test("fetchParts reports a part that fails to download", async () => {
     [`${BASE}yaegi.wasm.part00`]: "ab",
   })), /yaegi\.wasm\.part01.*404/);
 });
+
+test("installPartsFetch serves a split file from its verified parts and passes other URLs through", async () => {
+  const { installPartsFetch } = await import("../site/run/shared/parts.mjs");
+  const files = {
+    [`${BASE}big.wasm.json`]: descriptor,
+    [`${BASE}yaegi.wasm.part00`]: "ab",
+    [`${BASE}yaegi.wasm.part01`]: "c",
+    [`${BASE}other.js`]: "plain",
+  };
+  const patched = installPartsFetch([`${BASE}big.wasm`], fakeFetch(files));
+  const response = await patched(new URL(`${BASE}big.wasm`));
+  assert.equal(response.headers.get("content-type"), "application/wasm");
+  assert.equal(await response.text(), "abc");
+  assert.equal(await (await patched(`${BASE}other.js`)).text(), "plain");
+});
+
+test("installPartsFetch rejects when a part is corrupt", async () => {
+  const { installPartsFetch } = await import("../site/run/shared/parts.mjs");
+  const patched = installPartsFetch([`${BASE}big.wasm`], fakeFetch({
+    [`${BASE}big.wasm.json`]: descriptor,
+    [`${BASE}yaegi.wasm.part00`]: "ab",
+    [`${BASE}yaegi.wasm.part01`]: "Z",
+  }));
+  await assert.rejects(patched(`${BASE}big.wasm`), /corrupt/);
+});

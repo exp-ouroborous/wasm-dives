@@ -25,5 +25,36 @@
       "run/shared/runtime-worker.mjs",
       "run/shared/parts.mjs"
     ]
+  },
+  "cpp": {
+    "package": "@yowasp/clang",
+    "version": "22.0.0-git20542-10",
+    "vendorDir": "run/vendor/yowasp-clang/22.0.0-git20542-10",
+    "exclude": [
+      "README.md",
+      "lib"
+    ],
+    "split": [
+      "gen/llvm.core.wasm",
+      "gen/llvm-resources.tar"
+    ],
+    "partBytes": 20971520,
+    "notice": "yowasp-clang.md",
+    "also": [
+      {
+        "package": "@bjorn3/browser_wasi_shim",
+        "version": "0.4.2",
+        "vendorDir": "run/vendor/browser_wasi_shim/0.4.2",
+        "include": [
+          "dist"
+        ]
+      }
+    ],
+    "files": [
+      "run/cpp/worker.js",
+      "run/cpp/clang-result.mjs",
+      "run/shared/runtime-worker.mjs",
+      "run/shared/parts.mjs"
+    ]
   }
 }

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile, access } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, access, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { vendorRuntime } from "../scripts/vendor.mjs";
@@ -33,4 +33,23 @@ test("vendorRuntime refuses a package whose installed version differs from the p
   const { nodeModules, dist } = await fakePackage();
   await writeFile(join(nodeModules, "@demo/rt/package.json"), JSON.stringify({ version: "1.0.1" }));
   await assert.rejects(vendorRuntime(nodeModules, dist, spec), /1\.0\.1.*1\.0\.0|pinned/);
+});
+
+test("vendorRuntime splits listed files into parts with a descriptor and drops the original", async () => {
+  const { nodeModules, dist } = await fakePackage();
+  await mkdir(join(nodeModules, "@demo/rt/gen"), { recursive: true });
+  await writeFile(join(nodeModules, "@demo/rt/gen/big.bin"), "0123456789");
+  const copied = await vendorRuntime(nodeModules, dist, { ...spec, split: ["gen/big.bin"], partBytes: 4 });
+  assert.ok(copied.includes("gen/big.bin.part00") && copied.includes("gen/big.bin.part02") && copied.includes("gen/big.bin.json"));
+  assert.ok(!copied.includes("gen/big.bin"));
+  await assert.rejects(access(join(dist, "run/vendor/rt/1.0.0/gen/big.bin")));
+  const descriptor = JSON.parse(await readFile(join(dist, "run/vendor/rt/1.0.0/gen/big.bin.json"), "utf8"));
+  assert.deepEqual(descriptor.parts, ["big.bin.part00", "big.bin.part01", "big.bin.part02"]);
+  assert.equal(descriptor.size, 10);
+});
+
+test("vendorRuntime with include copies only the listed top-level entries", async () => {
+  const { nodeModules, dist } = await fakePackage();
+  const copied = await vendorRuntime(nodeModules, dist, { ...spec, exclude: [], include: ["_framework"] });
+  assert.deepEqual(copied, ["_framework/dotnet.wasm"]);
 });
