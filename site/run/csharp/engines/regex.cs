@@ -34,7 +34,8 @@ public static class Engine
             var regex = new Regex(pattern, options, Timeout);
             var names = regex.GetGroupNames().Where(n => !int.TryParse(n, out _)).ToArray();
             var matches = regex.Matches(text).ToArray();
-            var full = Regex.IsMatch(text, $"^(?:{pattern})$", options, Timeout);
+            // \A and \z anchor the whole input (^/$ would allow a final newline, or one line under Multiline).
+            var full = Regex.IsMatch(text, $@"\A(?:{pattern})\z", options, Timeout);
             return Write(json =>
             {
                 json.WriteBoolean("ok", true);

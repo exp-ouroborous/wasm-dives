@@ -1,27 +1,215 @@
 [
-  { "name": "digits", "input": { "pattern": "\\d+", "text": "a12b345", "flags": [], "replacement": "" },
-    "expect": { "match_count": 2, "first": { "match": "12", "start": 1, "end": 3 }, "full_match": false } },
-  { "name": "numbered groups and $n replacement", "input": { "pattern": "([a-z]+)-(\\d)", "text": "ab-1 cd-2", "flags": [], "replacement": "$2:$1" },
-    "expect": { "match_count": 2, "first": { "match": "ab-1", "start": 0, "end": 4, "numbered_groups": ["ab", "1"] }, "substitution": "1:ab 2:cd" } },
-  { "name": "named groups and $name replacement",
-    "input": { "pattern": "(?P<word>[a-z]+)-(?P<n>\\d)", "text": "ab-1 cd-2", "flags": [], "replacement": "[$word]" },
-    "patterns": { "csharp": "(?<word>[a-z]+)-(?<n>\\d)" },
-    "expect": { "match_count": 2, "first": { "match": "ab-1", "groups": { "word": "ab", "n": "1" } }, "substitution": "[ab] [cd]" },
-    "expect_error": { "cpp": "named groups" } },
-  { "name": "ignorecase", "input": { "pattern": "hello", "text": "Hello HELLO hello", "flags": ["ignorecase"], "replacement": "" },
-    "expect": { "match_count": 3 } },
-  { "name": "multiline", "input": { "pattern": "^x", "text": "x\nx\ny", "flags": ["multiline"], "replacement": "" },
-    "expect": { "match_count": 2 } },
-  { "name": "dotall", "input": { "pattern": "a.b", "text": "a\nb", "flags": ["dotall"], "replacement": "" },
-    "expect": { "match_count": 1 },
-    "expect_error": { "cpp": "dotall" } },
-  { "name": "astral characters count as one code point", "input": { "pattern": "b+", "text": "😀a😀bb", "flags": [], "replacement": "" },
-    "expect": { "match_count": 1, "first": { "match": "bb", "start": 3, "end": 5 } } },
-  { "name": "full match", "input": { "pattern": "\\w+", "text": "abc", "flags": [], "replacement": "" },
-    "expect": { "match_count": 1, "full_match": true } },
-  { "name": "invalid pattern", "input": { "pattern": "(", "text": "x", "flags": [], "replacement": "" },
-    "expect_error": { "*": "" } },
-  { "name": "lookbehind", "input": { "pattern": "(?<=a)b", "text": "ab cb", "flags": [], "replacement": "" },
-    "expect": { "match_count": 1, "first": { "match": "b", "start": 1, "end": 2 } },
-    "expect_error": { "go": "", "cpp": "" } }
+  {
+    "name": "digits",
+    "input": {
+      "pattern": "\\d+",
+      "text": "a12b345",
+      "flags": [],
+      "replacement": ""
+    },
+    "expect": {
+      "match_count": 2,
+      "first": {
+        "match": "12",
+        "start": 1,
+        "end": 3
+      },
+      "full_match": false
+    }
+  },
+  {
+    "name": "numbered groups and $n replacement",
+    "input": {
+      "pattern": "([a-z]+)-(\\d)",
+      "text": "ab-1 cd-2",
+      "flags": [],
+      "replacement": "$2:$1"
+    },
+    "expect": {
+      "match_count": 2,
+      "first": {
+        "match": "ab-1",
+        "start": 0,
+        "end": 4,
+        "numbered_groups": [
+          "ab",
+          "1"
+        ]
+      },
+      "substitution": "1:ab 2:cd"
+    }
+  },
+  {
+    "name": "named groups and $name replacement",
+    "input": {
+      "pattern": "(?P<word>[a-z]+)-(?P<n>\\d)",
+      "text": "ab-1 cd-2",
+      "flags": [],
+      "replacement": "[$word]"
+    },
+    "patterns": {
+      "csharp": "(?<word>[a-z]+)-(?<n>\\d)"
+    },
+    "expect": {
+      "match_count": 2,
+      "first": {
+        "match": "ab-1",
+        "groups": {
+          "word": "ab",
+          "n": "1"
+        }
+      },
+      "substitution": "[ab] [cd]"
+    },
+    "expect_error": {
+      "cpp": "named groups"
+    }
+  },
+  {
+    "name": "ignorecase",
+    "input": {
+      "pattern": "hello",
+      "text": "Hello HELLO hello",
+      "flags": [
+        "ignorecase"
+      ],
+      "replacement": ""
+    },
+    "expect": {
+      "match_count": 3
+    }
+  },
+  {
+    "name": "multiline",
+    "input": {
+      "pattern": "^x",
+      "text": "x\nx\ny",
+      "flags": [
+        "multiline"
+      ],
+      "replacement": ""
+    },
+    "expect": {
+      "match_count": 2
+    }
+  },
+  {
+    "name": "dotall",
+    "input": {
+      "pattern": "a.b",
+      "text": "a\nb",
+      "flags": [
+        "dotall"
+      ],
+      "replacement": ""
+    },
+    "expect": {
+      "match_count": 1
+    },
+    "expect_error": {
+      "cpp": "dotall"
+    }
+  },
+  {
+    "name": "astral characters count as one code point",
+    "input": {
+      "pattern": "b+",
+      "text": "😀a😀bb",
+      "flags": [],
+      "replacement": ""
+    },
+    "expect": {
+      "match_count": 1,
+      "first": {
+        "match": "bb",
+        "start": 3,
+        "end": 5
+      }
+    }
+  },
+  {
+    "name": "full match",
+    "input": {
+      "pattern": "\\w+",
+      "text": "abc",
+      "flags": [],
+      "replacement": ""
+    },
+    "expect": {
+      "match_count": 1,
+      "full_match": true
+    }
+  },
+  {
+    "name": "invalid pattern",
+    "input": {
+      "pattern": "(",
+      "text": "x",
+      "flags": [],
+      "replacement": ""
+    },
+    "expect_error": {
+      "*": ""
+    }
+  },
+  {
+    "name": "lookbehind",
+    "input": {
+      "pattern": "(?<=a)b",
+      "text": "ab cb",
+      "flags": [],
+      "replacement": ""
+    },
+    "expect": {
+      "match_count": 1,
+      "first": {
+        "match": "b",
+        "start": 1,
+        "end": 2
+      }
+    },
+    "expect_error": {
+      "go": "",
+      "cpp": ""
+    }
+  },
+  {
+    "name": "a trailing newline is not a full match",
+    "input": {
+      "pattern": "a",
+      "text": "a\n",
+      "flags": [],
+      "replacement": ""
+    },
+    "expect": {
+      "match_count": 1,
+      "full_match": false
+    }
+  },
+  {
+    "name": "multiline does not make one line a full match",
+    "input": {
+      "pattern": "a",
+      "text": "a\nb",
+      "flags": [
+        "multiline"
+      ],
+      "replacement": ""
+    },
+    "expect": {
+      "full_match": false
+    }
+  },
+  {
+    "name": "$1 followed by letters",
+    "input": {
+      "pattern": "(a)",
+      "text": "a",
+      "flags": [],
+      "replacement": "$1x"
+    },
+    "expect": {
+      "substitution": "ax"
+    }
+  }
 ]

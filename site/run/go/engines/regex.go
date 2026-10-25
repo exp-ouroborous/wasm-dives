@@ -62,8 +62,17 @@ func template(replacement string) string {
 			continue
 		}
 		j := i + 1
-		for j < len(replacement) && (replacement[j] == '_' || replacement[j] >= '0' && replacement[j] <= '9' || replacement[j] >= 'a' && replacement[j] <= 'z' || replacement[j] >= 'A' && replacement[j] <= 'Z') {
-			j++
+		isDigit := func(b byte) bool { return b >= '0' && b <= '9' }
+		isWord := func(b byte) bool { return b == '_' || isDigit(b) || b >= 'a' && b <= 'z' || b >= 'A' && b <= 'Z' }
+		if isDigit(replacement[j]) {
+			// $1x is group 1 then "x": a numeric reference stops at the first non-digit.
+			for j < len(replacement) && isDigit(replacement[j]) {
+				j++
+			}
+		} else {
+			for j < len(replacement) && isWord(replacement[j]) {
+				j++
+			}
 		}
 		if j == i+1 {
 			out.WriteString("$$")
