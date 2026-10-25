@@ -1,0 +1,21 @@
+{
+  "csharp": {
+    "package": "@wasmsharp/core",
+    "version": "0.10.2",
+    "vendorDir": "run/vendor/wasmsharp/0.10.2",
+    "exclude": [
+      "WasmCompiler.js",
+      "worker.js",
+      "index.js",
+      "main.js"
+    ],
+    "bundle": {
+      "entry": "run/csharp/worker.js",
+      "loaders": [
+        ".wasm",
+        ".dat",
+        ".dll"
+      ]
+    }
+  }
+}
