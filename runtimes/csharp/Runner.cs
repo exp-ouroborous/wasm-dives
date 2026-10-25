@@ -61,6 +61,36 @@ public static partial class Runner
         }
     }
 
+    // Tool engines: a library defining `public static class Engine` with
+    // `public static string Handle(string input)`, compiled once and kept loaded.
+    static readonly Dictionary<string, Func<string, string>> Engines = [];
+    static readonly CSharpCompilationOptions LibraryOptions = CompilationOptions.WithOutputKind(OutputKind.DynamicallyLinkedLibrary);
+
+    /// <summary>Compiles and loads an engine; returns "" or the compile errors.</summary>
+    [JSExport]
+    public static string LoadEngine(string name, string source)
+    {
+        var tree = CSharpSyntaxTree.ParseText(source, ParseOptions, $"{name}.cs");
+        var compilation = CSharpCompilation.Create($"Engine.{name}", [UsingsTree, tree], Net100.References.All, LibraryOptions);
+        using var image = new MemoryStream();
+        var emitted = compilation.Emit(image);
+        if (!emitted.Success)
+        {
+            return string.Join('\n', emitted.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Select(d => d.ToString()));
+        }
+        image.Position = 0;
+        var assembly = AssemblyLoadContext.Default.LoadFromStream(image);
+        var handle = assembly.GetType("Engine")?.GetMethod("Handle", [typeof(string)]);
+        if (handle is null || handle.ReturnType != typeof(string)) return "the engine must define public static string Engine.Handle(string)";
+        Engines[name] = handle.CreateDelegate<Func<string, string>>();
+        return "";
+    }
+
+    /// <summary>Calls a loaded engine with its JSON input; returns its JSON output.</summary>
+    [JSExport]
+    public static string CallEngine(string name, string input) =>
+        Engines.TryGetValue(name, out var handle) ? handle(input) : throw new InvalidOperationException($"engine {name} is not loaded");
+
     static async Task<string> CompileAndRun(string source)
     {
         var tree = CSharpSyntaxTree.ParseText(source, ParseOptions, "Program.cs");
