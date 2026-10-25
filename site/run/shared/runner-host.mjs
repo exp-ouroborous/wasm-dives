@@ -4,7 +4,7 @@
 // cancels a worker that is still being prepared.
 
 import { ProgressTracker } from "../sw-core.mjs";
-import { PROTOCOL, isAllowedOrigin, parseMessage, rejectedCall } from "./protocol.mjs";
+import { PROTOCOL, isAllowedOrigin, parseMessage, rejectedCall, rejectedRun } from "./protocol.mjs";
 import { BOOT_FAILED, DOWNLOAD_FAILED, chooseLoadStrategy, initialState, runnerReducer } from "./runner-state.mjs";
 
 const NO_PROGRESS_NOTICE = "Progress and caching unavailable in this browser mode";
@@ -121,12 +121,13 @@ export function startRunnerHost({ language, workerUrl, win = window, deps = brow
     if (event.source !== win.parent || !isAllowedOrigin(event.origin)) return;
     const message = parseMessage(event.data);
     if (!message) {
-      // Answer a refused call (unknown engine, bad input) so the page is not left waiting.
-      const rejected = rejectedCall(event.data);
-      if (rejected) {
-        parentOrigin = event.origin;  // already checked against the allowlist above
-        post({ type: "called", id: rejected.id, ok: false, output: null, error: rejected.error, ms: 0 });
-      }
+      // Answer a refused call or run (unknown engine, bad input or options) so
+      // the page is not left waiting.
+      const call = rejectedCall(event.data);
+      const run = rejectedRun(event.data);
+      if (call || run) parentOrigin = event.origin; // already checked against the allowlist above
+      if (call) post({ type: "called", id: call.id, ok: false, output: null, error: call.error, ms: 0 });
+      if (run) post({ type: "result", id: run.id, ok: false, stdout: "", stderr: `The runner refused this run: ${run.error}`, diagnostics: [], ms: 0 });
       return;
     }
     parentOrigin = event.origin;

@@ -120,3 +120,12 @@ test("a call the runner refuses gets an error reply instead of silence", async (
   assert.equal(workers.length, 0, "no worker is started for it");
   assert.deepEqual(parentMessages.find((m) => m.type === "called"), { protocol: PROTOCOL, type: "called", id: "c9", ok: false, output: null, error: "unknown engine: no-such-engine", ms: 0 });
 });
+
+test("a run the runner refuses gets a failed result instead of silence", async () => {
+  const { send, workers, parentMessages, control } = harness();
+  control.resolve(true);
+  send({ type: "run", id: "r9", source: "x", options: { dialect: "cobol" } });
+  await tick();
+  assert.equal(workers.length, 0, "no worker is started for it");
+  assert.deepEqual(parentMessages.find((m) => m.type === "result"), { protocol: PROTOCOL, type: "result", id: "r9", ok: false, stdout: "", stderr: "The runner refused this run: invalid run options", diagnostics: [], ms: 0 });
+});

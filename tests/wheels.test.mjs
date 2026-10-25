@@ -31,3 +31,13 @@ test("fetchWheel fails on an HTTP error", async () => {
   const cache = await mkdtemp(join(tmpdir(), "wheels-"));
   await assert.rejects(fetchWheel(wheel, cache, async () => new Response("", { status: 404 })), /HTTP 404/);
 });
+
+test("vendorPinned keeps each file's relative path under the vendor dir and lists it", async () => {
+  const { vendorPinned } = await import("../scripts/wheels.mjs");
+  const root = await mkdtemp(join(tmpdir(), "pinned-"));
+  const dist = join(root, "dist");
+  const files = [{ path: "bin/tool.wasm.gz", url: "https://files.example/tool", sha256 }];
+  const paths = await vendorPinned(root, dist, "run/vendor/thing/1", files, async () => new Response(bytes));
+  assert.deepEqual(paths, ["run/vendor/thing/1/bin/tool.wasm.gz"]);
+  assert.deepEqual(new Uint8Array(await readFile(join(dist, "run/vendor/thing/1/bin/tool.wasm.gz"))), bytes);
+});

@@ -16,11 +16,12 @@ export function isAllowedOrigin(origin, allowed = ALLOWED_PARENT_ORIGINS) {
 
 const DIALECTS = new Set(["c", "cpp"]);
 
-/** Run options are optional; when present, only a known dialect is allowed. */
+/** Run options are optional (or empty); when present, only a known dialect is allowed. */
 function validOptions(options) {
   if (options === undefined) return true;
   if (options === null || typeof options !== "object" || Array.isArray(options)) return false;
   const keys = Object.keys(options);
+  if (keys.length === 0) return true;
   return keys.length === 1 && keys[0] === "dialect" && DIALECTS.has(options.dialect);
 }
 
@@ -64,4 +65,11 @@ export function rejectedCall(data) {
   if (typeof data.id !== "string" || parseMessage(data)) return null;
   if (!ENGINES.has(data.engine)) return { id: data.id, error: `unknown engine: ${String(data.engine).slice(0, 40)}` };
   return { id: data.id, error: "invalid engine input" };
+}
+
+/** Like rejectedCall, for a well-formed run that parseMessage refuses. */
+export function rejectedRun(data) {
+  if (data === null || typeof data !== "object" || data.protocol !== PROTOCOL || data.type !== "run") return null;
+  if (typeof data.id !== "string" || parseMessage(data)) return null;
+  return { id: data.id, error: typeof data.source !== "string" ? "invalid run source" : "invalid run options" };
 }

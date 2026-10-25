@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { PROTOCOL, isAllowedOrigin, parseMessage, rejectedCall } from "../site/run/shared/protocol.mjs";
+import { PROTOCOL, isAllowedOrigin, parseMessage, rejectedCall, rejectedRun } from "../site/run/shared/protocol.mjs";
 
 test("isAllowedOrigin accepts the site's own origins", () => {
   assert.equal(isAllowedOrigin("https://wordsfortheunwise.com"), true);
@@ -81,4 +81,16 @@ test("rejectedCall names a well-formed call the runner refuses, so it can answer
 test("the diff engine is callable with two texts and labels", () => {
   const message = { protocol: PROTOCOL, type: "call", id: "1", engine: "diff", input: { left: "a", right: "b", from_label: "left", to_label: "right" } };
   assert.deepEqual(parseMessage(message), message);
+});
+
+test("a run may carry empty options", () => {
+  const message = { protocol: PROTOCOL, type: "run", id: "r1", source: "fn main() {}", options: {} };
+  assert.deepEqual(parseMessage(message), message);
+});
+
+test("rejectedRun names a well-formed run the runner refuses, so it can answer instead of hanging", () => {
+  assert.deepEqual(rejectedRun({ protocol: PROTOCOL, type: "run", id: "r2", source: "x", options: { dialect: "cobol" } }), { id: "r2", error: "invalid run options" });
+  assert.deepEqual(rejectedRun({ protocol: PROTOCOL, type: "run", id: "r3", source: 42 }), { id: "r3", error: "invalid run source" });
+  assert.equal(rejectedRun({ protocol: PROTOCOL, type: "run", id: "r4", source: "x" }), null, "valid runs are not rejected");
+  assert.equal(rejectedRun({ protocol: PROTOCOL, type: "run", source: "x", options: 7 }), null, "no id: nothing to answer");
 });
