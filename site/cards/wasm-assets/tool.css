@@ -1,5 +1,12 @@
 /* Shared pieces for tool pages: the branded language dropdown and the
    "View source" dialog. Colours come from each language (--lang). */
+
+/* The pages style .button with display: inline-flex, which would beat the
+   hidden attribute (Stop, notes); hidden must always hide. */
+[hidden] {
+  display: none !important;
+}
+
 .tool-language { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 16px; }
 .tool-language .engine-name { color: #647084; font-size: 13px; }
 .lang-picker { position: relative; }
