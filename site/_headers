@@ -1,0 +1,8 @@
+/run/*
+  Content-Security-Policy: frame-ancestors https://wordsfortheunwise.com https://www.wordsfortheunwise.com https://wasm-dives.pages.dev http://localhost:8788
+
+/run/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/run/sw.js
+  Cache-Control: no-cache
