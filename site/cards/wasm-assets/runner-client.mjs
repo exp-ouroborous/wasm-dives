@@ -17,6 +17,7 @@ function iframeLoaded(iframe) {
 export function createRunnerClient({ iframe, origin, win = window, loaded = iframeLoaded(iframe) }) {
   const listeners = { phase: [], progress: [], runtime: [], notice: [] };
   let pending = null;
+  let pendingCall = null;
 
   const send = async (message) => {
     await loaded;
@@ -37,7 +38,29 @@ export function createRunnerClient({ iframe, origin, win = window, loaded = ifra
       case "result":
         if (pending && data.id === pending.id) settle("resolve", data);
         break;
+      case "called":
+        if (pendingCall && data.id === pendingCall.id) {
+          if (!data.ok && data.error === "busy") {
+            // The runner is finishing an earlier call or run: try again shortly.
+            const current = pendingCall;
+            setTimeout(() => {
+              if (pendingCall !== current) return;
+              current.id = crypto.randomUUID();
+              send({ type: "call", id: current.id, engine: current.engine, input: current.input });
+            }, 50);
+            break;
+          }
+          const current = pendingCall;
+          pendingCall = null;
+          current.resolve(data);
+        }
+        break;
       case "error":
+        if (pendingCall && (data.id === undefined || data.id === pendingCall.id)) {
+          const current = pendingCall;
+          pendingCall = null;
+          current.reject(new Error(data.message));
+        }
         if (pending && (data.id === undefined || data.id === pending.id)) settle("reject", new Error(data.message));
         break;
       case "phase":
@@ -65,7 +88,21 @@ export function createRunnerClient({ iframe, origin, win = window, loaded = ifra
       send(options === undefined ? { type: "run", id, source } : { type: "run", id, source, options });
       return promise;
     },
+    /** One engine call at a time; a newer call supersedes one still waiting. */
+    call(engine, input) {
+      pendingCall?.reject(new Error("superseded"));
+      const id = crypto.randomUUID();
+      const promise = new Promise((resolve, reject) => {
+        pendingCall = { id, engine, input, resolve, reject };
+      });
+      send({ type: "call", id, engine, input });
+      return promise;
+    },
     stop() {
+      if (pendingCall) {
+        pendingCall.reject(new Error("stopped"));
+        pendingCall = null;
+      }
       settle("reject", new Error("stopped"));
       send({ type: "stop" });
     },

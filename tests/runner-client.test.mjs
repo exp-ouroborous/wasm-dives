@@ -109,3 +109,33 @@ test("run forwards options when given and omits them otherwise", async () => {
   await tick();
   assert.equal(Object.hasOwn(sent.at(-1).data, "options"), false);
 });
+
+test("call posts an engine call and resolves on the matching 'called' reply only", async () => {
+  const { client, sent, deliver } = harness();
+  const pending = client.call("regex", { pattern: "a", text: "a" });
+  await tick();
+  const message = sent.at(-1).data;
+  assert.deepEqual({ ...message, id: "x" }, { protocol: PROTOCOL, type: "call", id: "x", engine: "regex", input: { pattern: "a", text: "a" } });
+  let settled = false;
+  pending.then(() => (settled = true));
+  deliver({ type: "called", id: "other", ok: true, output: {} });
+  await tick();
+  assert.equal(settled, false);
+  deliver({ type: "called", id: message.id, ok: true, output: { match_count: 1 } });
+  assert.deepEqual((await pending).output, { match_count: 1 });
+});
+
+test("a 'busy' reply makes the client retry the same call shortly afterwards", async () => {
+  const { client, sent, deliver } = harness();
+  const pending = client.call("regex", { pattern: "b", text: "b" });
+  await tick();
+  const first = sent.at(-1).data;
+  deliver({ type: "called", id: first.id, ok: false, output: null, error: "busy" });
+  await new Promise((resolve) => setTimeout(resolve, 80));
+  const retry = sent.at(-1).data;
+  assert.equal(retry.type, "call");
+  assert.notEqual(retry.id, first.id);
+  assert.deepEqual(retry.input, { pattern: "b", text: "b" });
+  deliver({ type: "called", id: retry.id, ok: true, output: { match_count: 1 } });
+  assert.equal((await pending).ok, true);
+});
