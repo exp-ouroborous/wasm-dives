@@ -116,12 +116,24 @@ func parse(source string) (*value, error) {
 	dec.UseNumber()
 	v, err := read(dec)
 	if err != nil {
-		return nil, err
+		return nil, absolute(source, err)
 	}
 	if _, err := dec.Token(); err != io.EOF {
-		return nil, &parseError{"unexpected data after the top-level value", dec.InputOffset()}
+		return nil, absolute(source, &parseError{"unexpected data after the top-level value", dec.InputOffset()})
 	}
 	return v, nil
+}
+
+// The Decoder's SyntaxError offsets are relative to the value it was
+// buffering; Unmarshal over the whole input reports absolute ones.
+func absolute(source string, err error) error {
+	var raw json.RawMessage
+	if whole := json.Unmarshal([]byte(source), &raw); whole != nil {
+		if syntax, ok := whole.(*json.SyntaxError); ok {
+			return syntax
+		}
+	}
+	return err
 }
 
 // position turns an error into a 1-based line and column (in code points).
@@ -130,7 +142,11 @@ func position(source string, err error) (int, int) {
 	// A type switch, not errors.As: Yaegi panics on errors.As with an interpreted type.
 	switch e := err.(type) {
 	case *json.SyntaxError:
+		// Offset counts the offending byte; at end of input there is none.
 		offset = e.Offset
+		if offset > 0 && e.Error() != "unexpected end of JSON input" {
+			offset--
+		}
 	case *parseError:
 		offset = e.offset
 	}

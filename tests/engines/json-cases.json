@@ -237,5 +237,47 @@
     "only": {
       "python": {}
     }
+  },
+  {
+    "name": "NaN and Infinity are not JSON",
+    "input": {
+      "action": "format",
+      "source": "[1,\n NaN]",
+      "indent": 2,
+      "sort_keys": false,
+      "minify": false,
+      "allow_jsonc": false
+    },
+    "expect_error": {
+      "line": 2
+    }
+  },
+  {
+    "name": "JSONC still rejects a trailing comma with nothing after it",
+    "input": {
+      "action": "format",
+      "source": "1,",
+      "indent": 2,
+      "sort_keys": false,
+      "minify": false,
+      "allow_jsonc": true
+    },
+    "expect_error": {
+      "line": 1
+    }
+  },
+  {
+    "name": "sorted keys follow code-point order beyond the BMP",
+    "input": {
+      "action": "format",
+      "source": "{\"😀\":1,\"\":2,\"a\":3}",
+      "indent": 2,
+      "sort_keys": true,
+      "minify": true,
+      "allow_jsonc": false
+    },
+    "expect": {
+      "output": "{\"a\":3,\"\":2,\"😀\":1}"
+    }
   }
 ]

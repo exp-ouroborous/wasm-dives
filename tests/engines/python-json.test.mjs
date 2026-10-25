@@ -46,3 +46,17 @@ test("python json heal: refuses input it cannot fix", async () => {
   assert.equal(result.repaired, false);
   assert.match(result.error, /Expecting value/);
 });
+
+test("python json: a number beyond float range is an error, never Infinity", async () => {
+  const result = await analyze({ action: "format", source: "[1,\n 1e400]", indent: 2, sort_keys: false, minify: false, allow_jsonc: false });
+  assert.equal(result.ok, false);
+  assert.equal(result.line, 2);
+  assert.equal(result.column, 2);
+  assert.match(result.error, /out of range/);
+});
+
+test("python json heal: quotes a bare NaN rather than keeping it as a number", async () => {
+  const result = await heal("{value:NaN}");
+  assert.equal(result.ok, true);
+  assert.equal(result.output, '{\n  "value": "NaN"\n}');
+});
