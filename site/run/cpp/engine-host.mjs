@@ -57,7 +57,8 @@ export function engineResult(name, stdout, trap) {
 // Compiles an engine to wasm with YoWASP clang. A library's C sources are
 // compiled on their own first (-std=c++23 cannot apply to C), then linked in.
 // readLibrary(path) returns a vendored file's text, path relative to run/vendor/.
-export async function compileEngine(runClang, name, source, readLibrary, io) {
+// extraFlags (tests only) go to the final compile, e.g. libc++ hardening.
+export async function compileEngine(runClang, name, source, readLibrary, io, extraFlags = []) {
   const library = LIBRARIES[name];
   const files = { "engine.cc": source };
   const objects = [];
@@ -72,6 +73,6 @@ export async function compileEngine(runClang, name, source, readLibrary, io) {
       objects.push(object);
     }
   }
-  const linked = await runClang(["clang++", "engine.cc", ...objects, "-std=c++23", "-O2", "-fno-exceptions", "-o", "engine.wasm"], files, io);
+  const linked = await runClang(["clang++", "engine.cc", ...objects, "-std=c++23", "-O2", "-fno-exceptions", ...extraFlags, "-o", "engine.wasm"], files, io);
   return linked["engine.wasm"];
 }
