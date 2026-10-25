@@ -12,5 +12,6 @@
   {"name":"table of contents","input":{"source":"[TOC]\n\n# A\n\n## B","features":["toc"],"safe":false},"contains":["class=\"toc\""]},
   {"name":"raw HTML passes through when not safe","input":{"source":"<span class=\"x\">hi</span>","features":[],"safe":false},"contains":["<span class=\"x\">hi</span>"]},
   {"name":"safe mode drops scripts and event handlers","input":{"source":"<script>alert(1)</script>\n\n<img src=\"x\" onerror=\"alert(1)\">\n\n[x](javascript:alert(1))","features":[],"safe":true},"not_contains":["<script","href=\"javascript:"],"not_matches":["<[a-z][^>]*\\son[a-z]+\\s*="]},
-  {"name":"empty input","input":{"source":"","features":[],"safe":false},"html":""}
+  {"name":"empty input","input":{"source":"","features":[],"safe":false},"html":""},
+  {"name":"safe mode blanks obfuscated script URLs","input":{"source":"[a](jav&#x61;script:alert(1)) [b](JAVASCRIPT:alert(1)) <javascript:alert(1)> ![c](vbscript:x) [ok](https://example.com)","features":[],"safe":true},"contains":["href=\"https://example.com\""],"not_matches":["(href|src)=\"[^\"]*(script|data):"]}
 ]

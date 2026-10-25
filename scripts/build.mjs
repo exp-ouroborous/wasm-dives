@@ -8,6 +8,7 @@ import { publishEngineSources } from "./engines.mjs";
 import { classicServiceWorker } from "./sw-bundle.mjs";
 import { vendorRuntime } from "./vendor.mjs";
 import { vendorWheels } from "./wheels.mjs";
+import { copyLibraries } from "./libraries.mjs";
 
 const root = new URL("..", import.meta.url).pathname;
 const dist = join(root, "dist");
@@ -68,7 +69,8 @@ for (const [language, spec] of Object.entries(runtimes)) {
       const alsoCopied = await vendorRuntime(join(root, "node_modules"), dist, also);
       companions.push(...alsoCopied.filter((path) => path.endsWith(".js")).map((path) => `${also.vendorDir}/${path}`));
     }
-    groups[language] = [...own, ...companions, ...(spec.files ?? [])];
+    const libraries = await copyLibraries(root, dist, spec.libraries ?? []);
+    groups[language] = [...own, ...companions, ...libraries, ...(spec.files ?? [])];
     console.log(`vendored ${spec.package}@${spec.version}: ${copied.length} files, split ${spec.split.length}`);
     continue;
   }

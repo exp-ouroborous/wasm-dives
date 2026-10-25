@@ -6,11 +6,18 @@
 const ARGS = {
   regex: ["pattern", "text", "replacement", "flags"],
   json: ["action", "source", "indent", "sort_keys", "minify", "allow_jsonc"],
+  markdown: ["source", "features", "safe"],
 };
 
 const ENGINE_NAMES = {
   regex: "C++ std::regex (ECMAScript)",
   json: "C++ (hand-written parser)",
+  markdown: "md4c 0.6.0",
+};
+
+// C libraries an engine is built with, vendored under run/vendor/<dir>/.
+export const LIBRARIES = {
+  markdown: { dir: "md4c/0.6.0", sources: ["md4c.c", "md4c-html.c", "entity.c"], headers: ["md4c.h", "md4c-html.h", "entity.h"] },
 };
 
 // What each engine's result looks like when the call trapped.
@@ -23,6 +30,7 @@ const TRAPPED = {
     full_match: false,
   }),
   json: (trap) => ({ error: `The engine stopped unexpectedly: ${trap}`, output: "", tree: null, summary: {}, line: null, column: null }),
+  markdown: (trap) => ({ error: `The engine stopped unexpectedly: ${trap}`, html: "" }),
 };
 
 function arg(value) {
@@ -41,4 +49,26 @@ export function engineArgs(name, input) {
 export function engineResult(name, stdout, trap) {
   if (trap) return { ok: false, engine: ENGINE_NAMES[name] ?? name, ...(TRAPPED[name] ?? ((t) => ({ error: t })))(trap) };
   return JSON.parse(stdout);
+}
+
+// Compiles an engine to wasm with YoWASP clang. A library's C sources are
+// compiled on their own first (-std=c++23 cannot apply to C), then linked in.
+// readLibrary(path) returns a vendored file's text, path relative to run/vendor/.
+export async function compileEngine(runClang, name, source, readLibrary, io) {
+  const library = LIBRARIES[name];
+  const files = { "engine.cc": source };
+  const objects = [];
+  if (library) {
+    const libraryFiles = {};
+    for (const file of [...library.sources, ...library.headers]) libraryFiles[file] = await readLibrary(`${library.dir}/${file}`);
+    const compiled = await runClang(["clang", "-c", "-O2", ...library.sources], libraryFiles, io);
+    Object.assign(files, libraryFiles);
+    for (const file of library.sources) {
+      const object = file.replace(/\.c$/, ".o");
+      files[object] = compiled[object];
+      objects.push(object);
+    }
+  }
+  const linked = await runClang(["clang++", "engine.cc", ...objects, "-std=c++23", "-O2", "-fno-exceptions", "-o", "engine.wasm"], files, io);
+  return linked["engine.wasm"];
 }
