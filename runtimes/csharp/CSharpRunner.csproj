@@ -18,6 +18,10 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <Deterministic>true</Deterministic>
+    <!-- Keep the git commit out of the build so the runtime hash (its URL) only changes with the runtime. -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <EnableSourceLink>false</EnableSourceLink>
+    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
     <!-- Real exception messages for visitors, not resource keys. -->
     <UseSystemResourceKeys>false</UseSystemResourceKeys>
   </PropertyGroup>
