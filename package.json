@@ -9,5 +9,8 @@
   },
   "dependencies": {
     "@wasmsharp/core": "0.10.2"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.11"
   }
 }

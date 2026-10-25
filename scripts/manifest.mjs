@@ -15,15 +15,17 @@ function urlPath(distDir, file) {
 
 /**
  * The runtime manifest the sandbox service worker verifies downloads against:
- * every file under each group's prefixes, with its size and an SRI-style
- * sha384, sorted by path so builds are reproducible.
+ * every file under each group's entries (directories or single files), with
+ * its size and an SRI-style sha384, sorted by path so builds are reproducible.
  */
 export async function buildManifest(distDir, groups) {
   const manifest = { version: 1, groups: {} };
   for (const [name, prefixes] of Object.entries(groups)) {
     const files = [];
     for (const prefix of prefixes) {
-      for (const file of await listFiles(join(distDir, prefix))) {
+      const entry = join(distDir, prefix);
+      const entryFiles = (await stat(entry)).isDirectory() ? await listFiles(entry) : [entry];
+      for (const file of entryFiles) {
         const bytes = await readFile(file);
         files.push({
           path: urlPath(distDir, file),

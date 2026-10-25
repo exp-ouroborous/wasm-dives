@@ -38,3 +38,9 @@ test("assertPagesFileLimits names the first oversized file", async () => {
   const dir = await fixture();
   await assert.rejects(assertPagesFileLimits(dir, 2), /a\.wasm/);
 });
+
+test("buildManifest accepts a single file as a group entry", async () => {
+  const dir = await fixture();
+  const manifest = await buildManifest(dir, { demo: ["run/vendor/x/1.0.0/sub/b.js"] });
+  assert.deepEqual(manifest.groups.demo.files.map((f) => f.path), ["/run/vendor/x/1.0.0/sub/b.js"]);
+});
