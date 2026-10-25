@@ -49,7 +49,7 @@ public static class Engine
         JsonDocument document;
         try
         {
-            document = JsonDocument.Parse(source, options);
+            document = JsonDocument.Parse(ReplaceLoneSurrogates(source), options);
         }
         catch (JsonException error)
         {
@@ -103,6 +103,43 @@ public static class Engine
                 json.WriteNull("column");
             });
         }
+    }
+
+    // GetString() throws on an unpaired \uD8xx/\uDCxx escape, so swap each one
+    // for \ufffd first (same length: error positions stay true).
+    static string ReplaceLoneSurrogates(string source)
+    {
+        static int Hex(string s, int at) =>
+            at + 6 <= s.Length && s[at] == '\\' && s[at + 1] == 'u' && int.TryParse(s.AsSpan(at + 2, 4), System.Globalization.NumberStyles.HexNumber, null, out var v) ? v : -1;
+        // Every backslash starts an escape: outside a string one is invalid JSON
+        // anyway, so no string tracking is needed (comments can't fool it).
+        var output = new StringBuilder(source.Length);
+        for (var i = 0; i < source.Length; i++)
+        {
+            var c = source[i];
+            if (c != '\\' || i + 1 >= source.Length)
+            {
+                output.Append(c);
+                continue;
+            }
+            var unit = Hex(source, i);
+            if (unit is >= 0xD800 and <= 0xDBFF && Hex(source, i + 6) is >= 0xDC00 and <= 0xDFFF)
+            {
+                output.Append(source, i, 12);
+                i += 11;
+            }
+            else if (unit is >= 0xD800 and <= 0xDFFF)
+            {
+                output.Append("\\ufffd");
+                i += 5;
+            }
+            else
+            {
+                output.Append(source, i, 2);  // any other escape, including \\ and \"
+                i += 1;
+            }
+        }
+        return output.ToString();
     }
 
     static string? Text(JsonElement root, string name) =>
