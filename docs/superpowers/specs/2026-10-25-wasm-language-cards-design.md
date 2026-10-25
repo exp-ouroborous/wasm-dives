@@ -37,7 +37,7 @@ Roslyn on .NET.
 
 | Language | Runtime (scratchpad) | Notes |
 |---|---|---|
-| Python | Pyodide (existing dive) | moves onto the sandbox runner in a later phase |
+| Python | Pyodide `314.0.7` (CPython 3.14) in the sandbox runner | ~13.5 MB core, vendored and hash-verified; packages (numpy…) load on first import from the matching pinned jsDelivr release, each checked by Pyodide against the SHA-256 in `pyodide-lock.json`, which our service worker verifies *(call)*. The original Pyodide dive keeps its experiments but no longer runs typed code on the main origin |
 | C# | WasmSharp `@wasmsharp/core@0.10.2` (Roslyn on .NET WASM) | ~15 MB gzipped; single maintainer — pinned and self-hosted |
 | Go | Yaegi v0.16.1 (Go interpreter) built from source to WebAssembly by us | Owner decision 2026-10-25: GopherJS compiles Go to JavaScript, not WASM, so it is out. ~37 MB raw (~5–8 MB compressed), split into parts to fit Pages. The card says it is an interpreter with Go 1.22-era gaps (no `min`/`max`, no generic stdlib functions such as `slices.Sort`, no inference for two type parameters) and runs slower than compiled Go |
 | C/C++ | YoWASP Clang `@yowasp/clang@22.0.0-git20542-10` (pinned), programs run with `@bjorn3/browser_wasi_shim` | 105 MB unpacked (~21 MB brotli); upstream archived 2026-03, so we self-host it *(call)* — the two oversized files are split into parts like Go's, not loaded from jsDelivr. libc++ is built without exceptions, so C++ compiles with `-fno-exceptions`; the card says so |
