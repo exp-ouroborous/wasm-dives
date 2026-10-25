@@ -7,6 +7,7 @@ import { buildYaegi } from "./yaegi.mjs";
 import { publishEngineSources } from "./engines.mjs";
 import { classicServiceWorker } from "./sw-bundle.mjs";
 import { vendorRuntime } from "./vendor.mjs";
+import { vendorWheels } from "./wheels.mjs";
 
 const root = new URL("..", import.meta.url).pathname;
 const dist = join(root, "dist");
@@ -72,6 +73,10 @@ for (const [language, spec] of Object.entries(runtimes)) {
     continue;
   }
   groups[language] = fetched ?? vendoredGroup(spec);
+  if (spec.wheels) {
+    // Extra pure-Python packages, pinned by hash (see scripts/wheels.mjs).
+    groups[language].push(...(await vendorWheels(root, dist, spec.wheels.dir, spec.wheels.files)));
+  }
   console.log(`vendored ${spec.package}@${spec.version}: ${copied.length} files`);
 }
 
