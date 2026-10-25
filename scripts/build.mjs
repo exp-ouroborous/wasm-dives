@@ -2,6 +2,7 @@ import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { build } from "esbuild";
 import { assertPagesFileLimits, buildManifest } from "./manifest.mjs";
+import { classicServiceWorker } from "./sw-bundle.mjs";
 import { vendorRuntime } from "./vendor.mjs";
 
 const root = new URL("..", import.meta.url).pathname;
@@ -44,4 +45,11 @@ await writeFile(join(dist, "run/manifest.json"), `${JSON.stringify(manifest, nul
 for (const [language, group] of Object.entries(manifest.groups)) {
   console.log(`${language}: ${group.files.length} files, ${(group.totalBytes / 1e6).toFixed(1)} MB unpacked`);
 }
+await writeFile(
+  join(dist, "run/sw.js"),
+  classicServiceWorker(
+    await readFile(join(root, "site/run/sw-core.mjs"), "utf8"),
+    await readFile(join(root, "site/run/sw.js"), "utf8"),
+  ),
+);
 await assertPagesFileLimits(dist);
