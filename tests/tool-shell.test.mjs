@@ -52,3 +52,9 @@ test("tool shell modules never write HTML from strings", async () => {
     assert.doesNotMatch(text, /innerHTML|outerHTML|insertAdjacentHTML/, file);
   }
 });
+
+test("tool.css makes the hidden attribute win over the pages' .button display rule", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const css = await readFile(new URL("../site/cards/wasm-assets/tool.css", import.meta.url), "utf8");
+  assert.match(css, /\[hidden\]\s*\{\s*display:\s*none\s*!important;?\s*\}/);
+});
