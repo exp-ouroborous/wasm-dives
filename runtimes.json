@@ -8,7 +8,8 @@
     "files": [
       "run/csharp/worker.js",
       "run/shared/runtime-worker.mjs",
-      "run/csharp/engines/regex.cs"
+      "run/csharp/engines/regex.cs",
+      "run/csharp/engines/json.cs"
     ]
   },
   "go": {
@@ -25,7 +26,8 @@
       "run/go/yaegi-result.mjs",
       "run/shared/runtime-worker.mjs",
       "run/shared/parts.mjs",
-      "run/go/engines/regex.go"
+      "run/go/engines/regex.go",
+      "run/go/engines/json.go"
     ]
   },
   "cpp": {
