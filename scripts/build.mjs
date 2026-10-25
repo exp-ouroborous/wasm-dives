@@ -4,6 +4,7 @@ import { build } from "esbuild";
 import { assertPagesFileLimits, buildManifest, bundleOutputs, vendoredGroup } from "./manifest.mjs";
 import { publishDotnetRuntime } from "./dotnet.mjs";
 import { buildYaegi } from "./yaegi.mjs";
+import { publishEngineSources } from "./engines.mjs";
 import { classicServiceWorker } from "./sw-bundle.mjs";
 import { vendorRuntime } from "./vendor.mjs";
 
@@ -14,6 +15,7 @@ const runtimes = JSON.parse(await readFile(join(root, "runtimes.json"), "utf8"))
 await rm(dist, { recursive: true, force: true });
 await mkdir(dist, { recursive: true });
 await cp(join(root, "site"), dist, { recursive: true });
+await publishEngineSources(join(root, "site"), dist);
 
 const groups = {};
 for (const [language, spec] of Object.entries(runtimes)) {

@@ -1,0 +1,37 @@
+/* Shared pieces for tool pages: the branded language dropdown and the
+   "View source" dialog. Colours come from each language (--lang). */
+.tool-language { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 16px; }
+.tool-language .engine-name { color: #647084; font-size: 13px; }
+.lang-picker { position: relative; }
+.lang-button {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px;
+  border: 1px solid #dce4ee; border-left: 4px solid var(--lang); border-radius: 10px;
+  background: #fff; color: #17202a; font: inherit; font-weight: 600; cursor: pointer;
+}
+.lang-button:focus-visible { outline: 3px solid color-mix(in srgb, var(--lang) 45%, transparent); outline-offset: 2px; }
+.lang-caret { color: #647084; font-size: 12px; }
+.lang-chip { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; background: var(--lang); }
+.lang-chip svg { width: 15px; height: 15px; fill: #fff; }
+.lang-list {
+  position: absolute; z-index: 10; top: calc(100% + 6px); left: 0; min-width: 180px; margin: 0; padding: 6px;
+  list-style: none; background: #fff; border: 1px solid #dce4ee; border-radius: 10px; box-shadow: 0 12px 32px rgba(23, 32, 42, 0.16);
+}
+.lang-option { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px; cursor: pointer; }
+.lang-option.active, .lang-option:hover { background: color-mix(in srgb, var(--lang) 12%, #fff); }
+.lang-option[aria-selected="true"] { font-weight: 700; }
+.runner-frame { position: absolute; width: 0; height: 0; border: 0; }
+
+.source-dialog {
+  width: min(900px, calc(100% - 32px)); max-height: calc(100% - 48px); padding: 0;
+  border: 0; border-top: 4px solid var(--lang); border-radius: 12px; box-shadow: 0 24px 60px rgba(23, 32, 42, 0.35);
+}
+.source-dialog::backdrop { background: rgba(23, 32, 42, 0.55); }
+.source-dialog header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #dce4ee; }
+.source-dialog h2 { margin: 0; font-size: 17px; }
+.source-dialog header div { display: flex; gap: 8px; }
+.source-code {
+  margin: 0; padding: 14px 0; max-height: 70vh; overflow: auto; background: #17202a; color: #e8eef6;
+  font: 13px/1.55 ui-monospace, "SF Mono", Menlo, Consolas, monospace; white-space: pre;
+}
+.source-line { display: block; padding: 0 18px 0 0; }
+.source-gutter { display: inline-block; padding: 0 14px 0 18px; margin-right: 6px; color: #647084; user-select: none; }
