@@ -20,3 +20,9 @@ test("the shared card page themes, frames and labels by language", () => {
   assert.match(page, /\/run\/\$\{language\}\//);
   assert.match(page, /the next Run restarts the \$\{runtimeLabel\} runtime/);
 });
+
+test("the shared card page sends scratchpad, experiment and probe options", () => {
+  assert.match(page, /scratchpadOptions/);
+  assert.match(page, /experiment\.options/);
+  assert.match(page, /PROBE_OPTIONS/);
+});

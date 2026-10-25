@@ -75,3 +75,6 @@ pre {
 @media (max-width: 540px) {
   .panel { padding: 16px; }
 }
+
+.dialect { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 10px; font-weight: 600; font-size: 14px; }
+.dialect select { font: inherit; padding: 5px 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }

@@ -27,6 +27,11 @@ test("Go uses its own blue and logo", () => {
   assert.equal(LANGUAGES.go.logo.title, "Go");
 });
 
+test("C/C++ uses C++ blue and the C++ logo", () => {
+  assert.equal(LANGUAGES.cpp.color, "#00599c");
+  assert.equal(LANGUAGES.cpp.logo.title, "C++");
+});
+
 test("languageStyle sets the card accent from the language colour", () => {
   assert.equal(languageStyle("csharp"), "--accent: #512bd4; --accent-dark: #3d1fa3; --keyline: #9b87f5");
 });

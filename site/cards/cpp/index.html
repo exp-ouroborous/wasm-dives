@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>C and C++ in your browser · learn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" />
+    <link rel="stylesheet" href="../wasm-assets/card.css" />
+  </head>
+  <body>
+    <main class="page">
+      <a class="back" href="/learn/">← learn</a>
+
+      <header class="hero">
+        <span class="chip"><span id="language-logo" class="chip-logo" aria-hidden="true"></span>C/C++</span>
+        <h1>C and C++ in your browser</h1>
+        <p>The real Clang compiler, built for WebAssembly, compiles your program to WebAssembly and runs it — nothing leaves the page.</p>
+      </header>
+
+      <section class="panel" id="runtime" aria-labelledby="runtime-title">
+        <h2 id="runtime-title">Runtime</h2>
+        <p>
+          The first Run downloads Clang, LLD and the C/C++ headers and libraries (about 21 MB compressed, 105 MB
+          unpacked) into a sandbox on a separate origin. Later visits load them from your browser's cache.
+        </p>
+        <div class="status" id="runtime-status" role="status">Not loaded yet — press Run to download the C/C++ compiler.</div>
+        <progress id="runtime-progress" max="1" value="0"></progress>
+        <dl class="runtime-grid">
+          <div><dt>Downloaded</dt><dd id="runtime-bytes">—</dd></div>
+          <div><dt>Compiler</dt><dd id="runtime-version">—</dd></div>
+          <div><dt>Toolchain</dt><dd>YoWASP Clang/LLD 22, WASI</dd></div>
+        </dl>
+        <p class="notice" id="runtime-notice" hidden></p>
+      </section>
+
+      <section class="panel" id="scratchpad" aria-labelledby="scratchpad-title">
+        <h2 id="scratchpad-title">C/C++ scratchpad</h2>
+        <p>Write a whole program with a <code>main</code> function, pick C++ or C, and run it. Stop ends a long compile or a runaway program by shutting down its worker.</p>
+        <p class="notice">
+          C++ is compiled without exceptions (this libc++ build has none), so <code>throw</code> and <code>try</code> do not compile. Programs run with WASI: standard input is empty and there is no network or real filesystem.
+        </p>
+        <label class="dialect">Language
+          <select id="dialect">
+            <option value="cpp" selected>C++ (C++23)</option>
+            <option value="c">C (C17)</option>
+          </select>
+        </label>
+        <textarea id="scratchpad-input" spellcheck="false" aria-label="C or C++ source"></textarea>
+        <div class="actions">
+          <button id="scratchpad-run" type="button">Compile and run</button>
+          <button id="scratchpad-stop" class="secondary" type="button" disabled>Stop</button>
+        </div>
+        <pre id="scratchpad-output" aria-live="polite">Output will appear here.</pre>
+      </section>
+
+      <section class="panel" id="experiments" aria-labelledby="experiments-title">
+        <h2 id="experiments-title">Experiments</h2>
+        <p>Ready-made C++ and C programs. Each is compiled and run exactly like the scratchpad.</p>
+        <div class="actions" id="experiment-buttons"></div>
+        <p id="experiment-blurb"></p>
+        <pre id="experiment-output" aria-live="polite">Pick an experiment.</pre>
+      </section>
+
+      <section class="panel" id="probes" aria-labelledby="probes-title">
+        <h2 id="probes-title">Runtime probes</h2>
+        <p>Ask the compiler and the WebAssembly runtime what they can see from inside the browser sandbox.</p>
+        <div class="actions"><button id="probe-run" type="button">Run probes</button></div>
+        <pre id="probe-output" aria-live="polite">Probe results will appear here.</pre>
+      </section>
+    </main>
+
+    <iframe
+      id="runner"
+      class="runner-frame"
+      title="C and C++ sandbox runner"
+      sandbox="allow-scripts allow-same-origin"
+      aria-hidden="true"
+      tabindex="-1"
+    ></iframe>
+    <script type="module" src="./card.mjs"></script>
+  </body>
+</html>
