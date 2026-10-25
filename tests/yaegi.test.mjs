@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { access, mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { assertDocker, splitFile, yaegiCacheDir } from "../scripts/yaegi.mjs";
+import { assertDocker, sourceFingerprint, splitFile, yaegiCacheDir } from "../scripts/yaegi.mjs";
 
 const IMAGE = "golang:1.22.12@sha256:1cf6c45ba39db9fd6db16922041d074a63c935556a05c5ccb62d181034df7f02";
 const sri = (bytes) => `sha384-${createHash("sha384").update(bytes).digest("base64")}`;
@@ -24,8 +24,20 @@ test("splitFile cuts a file into ordered parts that reassemble exactly", async (
   await assert.rejects(access(file));
 });
 
-test("yaegiCacheDir keys the cache on the Yaegi version and image digest", () => {
-  assert.equal(yaegiCacheDir("/r", { version: "v0.16.1", image: IMAGE }), "/r/.cache/yaegi/v0.16.1-1cf6c45ba39d");
+test("yaegiCacheDir keys the cache on the Yaegi version, image digest and source fingerprint", () => {
+  assert.equal(yaegiCacheDir("/r", { version: "v0.16.1", image: IMAGE }, "abcdef0123456789"), "/r/.cache/yaegi/v0.16.1-1cf6c45ba39d-abcdef012345");
+});
+
+test("sourceFingerprint changes when the runner source or build command changes, and only then", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "yaegi-src-"));
+  await writeFile(join(dir, "main.go"), "package main // v1");
+  await writeFile(join(dir, "go.mod"), "module x");
+  await writeFile(join(dir, "go.sum"), "");
+  const first = await sourceFingerprint(dir, "go build A");
+  assert.equal(await sourceFingerprint(dir, "go build A"), first);
+  assert.notEqual(await sourceFingerprint(dir, "go build B"), first);
+  await writeFile(join(dir, "main.go"), "package main // v2");
+  assert.notEqual(await sourceFingerprint(dir, "go build A"), first);
 });
 
 test("assertDocker names the pinned image when Docker is unavailable", () => {
