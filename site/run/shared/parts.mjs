@@ -24,3 +24,19 @@ export async function fetchParts(descriptorUrl, fetcher = fetch) {
   }
   return bytes;
 }
+
+/**
+ * A fetch that serves each listed split file from its verified parts (via its
+ * `<file>.json` descriptor) and passes every other request through, so a
+ * library that fetches its own resources needs no changes.
+ */
+export function installPartsFetch(splitUrls, fetcher = globalThis.fetch) {
+  const split = new Set(splitUrls.map((url) => String(url)));
+  return async (input, init) => {
+    const href = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    if (!split.has(href)) return fetcher(input, init);
+    const bytes = await fetchParts(`${href}.json`, fetcher);
+    const type = href.endsWith(".wasm") ? "application/wasm" : "application/octet-stream";
+    return new Response(bytes, { headers: { "content-type": type } });
+  };
+}

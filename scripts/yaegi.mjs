@@ -4,25 +4,11 @@
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { access, cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
-import { basename, dirname, join } from "node:path";
+import { access, cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { splitFile } from "./parts.mjs";
 
 const OUTPUTS = ["yaegi.wasm", "wasm_exec.js", "LICENSE"];
-
-const sri = (bytes) => `sha384-${createHash("sha384").update(bytes).digest("base64")}`;
-
-/** Split a file into <name>.partNN pieces of at most partBytes, removing the original. */
-export async function splitFile(path, partBytes) {
-  const bytes = await readFile(path);
-  const parts = [];
-  for (let offset = 0, n = 0; offset < bytes.length; offset += partBytes, n += 1) {
-    const name = `${basename(path)}.part${String(n).padStart(2, "0")}`;
-    await writeFile(join(dirname(path), name), bytes.subarray(offset, offset + partBytes));
-    parts.push(name);
-  }
-  await rm(path);
-  return { size: bytes.length, sha384: sri(bytes), parts };
-}
 
 /** Hash of the runner's sources (every file in its folder) plus the build command. */
 export async function sourceFingerprint(sourceDir, buildCommand) {

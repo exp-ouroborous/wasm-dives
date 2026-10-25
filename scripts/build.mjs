@@ -53,6 +53,22 @@ for (const [language, spec] of Object.entries(runtimes)) {
     });
     fetched = bundleOutputs(metafile, dist);
   }
+  if (spec.notice) {
+    await cp(join(root, "scripts/notices", spec.notice), join(dist, spec.vendorDir, "THIRD_PARTY.md"));
+  }
+  if (spec.split) {
+    // A split runtime: progress and verification cover what the browser fetches,
+    // i.e. its code and parts, plus any companion packages and the card's own files.
+    const own = copied.filter((path) => path.startsWith("gen/")).map((path) => `${spec.vendorDir}/${path}`);
+    const companions = [];
+    for (const also of spec.also ?? []) {
+      const alsoCopied = await vendorRuntime(join(root, "node_modules"), dist, also);
+      companions.push(...alsoCopied.filter((path) => path.endsWith(".js")).map((path) => `${also.vendorDir}/${path}`));
+    }
+    groups[language] = [...own, ...companions, ...(spec.files ?? [])];
+    console.log(`vendored ${spec.package}@${spec.version}: ${copied.length} files, split ${spec.split.length}`);
+    continue;
+  }
   groups[language] = fetched ?? [spec.vendorDir];
   console.log(`vendored ${spec.package}@${spec.version}: ${copied.length} files`);
 }
