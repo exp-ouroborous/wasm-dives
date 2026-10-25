@@ -5,9 +5,11 @@
 import { serveRuntime } from "../shared/runtime-worker.mjs";
 import { runInHarness } from "./harness.mjs";
 import { toRunResult } from "./py-result.mjs";
+import { enginePackages } from "./engine-packages.mjs";
 
 const VENDOR = new URL("../vendor/pyodide/314.0.7/", import.meta.url);
 const PACKAGES = "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/";
+const WHEELS = new URL("../vendor/python-wheels/", import.meta.url);
 
 // Tool engines (engines/<name>.py), each loaded once into its own namespace.
 const engines = new Map();
@@ -16,6 +18,8 @@ async function engine(pyodide, name) {
   if (!engines.has(name)) {
     const response = await fetch(new URL(`./engines/${name}.py`, import.meta.url));
     if (!response.ok) throw new Error(`no ${name} engine for Python (HTTP ${response.status})`);
+    const packages = enginePackages(name, WHEELS);
+    if (packages.length > 0) await pyodide.loadPackage(packages);
     const namespace = pyodide.globals.get("dict")();
     pyodide.runPython(await response.text(), { globals: namespace, filename: `<engine:${name}>` });
     engines.set(name, namespace.get("handle"));
