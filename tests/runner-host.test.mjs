@@ -91,3 +91,12 @@ test("a runtime that fails to boot reports an error and allows a retry", async (
   await tick();
   assert.equal(workers.length, 2);
 });
+
+test("the runner host forwards run options to the worker", async () => {
+  const { send, workers, control } = harness();
+  control.resolve(true);
+  send({ type: "run", id: "r1", source: "x", options: { dialect: "c" } });
+  await tick();
+  await tick();
+  assert.deepEqual(workers[0].posted, [{ type: "run", id: "r1", source: "x", options: { dialect: "c" } }]);
+});

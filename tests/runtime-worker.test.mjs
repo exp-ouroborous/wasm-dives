@@ -47,3 +47,15 @@ test("an exception while running becomes a failed result, not a crash", async ()
   await tick();
   assert.deepEqual({ ...posted[1], ms: 0 }, { type: "result", id: "r1", ok: false, stdout: "", stderr: "boom", diagnostics: [], ms: 0 });
 });
+
+test("run receives the options, or an empty object when none were sent", async () => {
+  const { posted, target, post, deliver } = scope();
+  const seen = [];
+  serveRuntime({ boot: async () => ({ runtime: 1, version: "v" }), run: async (_rt, _src, options) => { seen.push(options); return { ok: true, stdout: "", stderr: "", diagnostics: [] }; }, post, target });
+  deliver({ type: "run", id: "a", source: "x", options: { dialect: "c" } });
+  await tick(); await tick();
+  deliver({ type: "run", id: "b", source: "y" });
+  await tick(); await tick();
+  assert.deepEqual(seen, [{ dialect: "c" }, {}]);
+  assert.equal(posted.length, 3);
+});

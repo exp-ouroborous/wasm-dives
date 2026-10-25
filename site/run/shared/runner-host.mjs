@@ -131,7 +131,8 @@ export function startRunnerHost({ language, workerUrl, win = window, deps = brow
     dispatch({ type: "run-requested", id: message.id });
     const target = await ensureWorker();
     if (target && target === worker && state.pendingRunId === message.id) {
-      target.postMessage({ type: "run", id: message.id, source: message.source });
+      const { id, source, options } = message;
+      target.postMessage(options === undefined ? { type: "run", id, source } : { type: "run", id, source, options });
     }
   });
 }

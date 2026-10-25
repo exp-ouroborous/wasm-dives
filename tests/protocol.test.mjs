@@ -30,3 +30,17 @@ test("parseMessage rejects a run whose id or source is not a string", () => {
   assert.equal(parseMessage({ protocol: PROTOCOL, type: "run", id: 1, source: "x" }), null);
   assert.equal(parseMessage({ protocol: PROTOCOL, type: "run", id: "1", source: {} }), null);
 });
+
+test("parseMessage accepts a run with a known dialect option", () => {
+  const message = { protocol: PROTOCOL, type: "run", id: "1", source: "x", options: { dialect: "c" } };
+  assert.deepEqual(parseMessage(message), message);
+  assert.deepEqual(parseMessage({ ...message, options: { dialect: "cpp" } }).options, { dialect: "cpp" });
+});
+
+test("parseMessage rejects unknown dialects, extra option keys and non-object options", () => {
+  const base = { protocol: PROTOCOL, type: "run", id: "1", source: "x" };
+  assert.equal(parseMessage({ ...base, options: { dialect: "rust" } }), null);
+  assert.equal(parseMessage({ ...base, options: { dialect: "c", extra: 1 } }), null);
+  assert.equal(parseMessage({ ...base, options: "c" }), null);
+  assert.equal(parseMessage({ ...base, options: null }), null);
+});
