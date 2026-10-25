@@ -27,7 +27,12 @@ export function capOutput(text, max = 200_000) {
 }
 
 export function formatDiagnostics(diagnostics) {
-  return diagnostics.map((d) => (d.line ? `${d.line}:${d.col}: ${d.message}` : `${d.id} (${d.start}–${d.end}): ${d.message}`)).join("\n");
+  return diagnostics
+    .map((d) => {
+      if (!d.line) return `${d.id} (${d.start}–${d.end}): ${d.message}`;
+      return d.col ? `${d.line}:${d.col}: ${d.message}` : `line ${d.line}: ${d.message}`;
+    })
+    .join("\n");
 }
 
 /** The text a card shows for one run: output or compile errors, stderr, timing. */

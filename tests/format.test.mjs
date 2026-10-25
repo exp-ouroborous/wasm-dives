@@ -80,3 +80,11 @@ test("formatRunResult shows a runtime failure as the program's output then stder
     "before the crash\n\nstderr:\n2:19: panic: main.main(...)\nassignment to entry in nil map\n\n(3 ms)",
   );
 });
+
+test("formatDiagnostics prints 'line N:' when a diagnostic has no column", async () => {
+  const { formatDiagnostics } = await import("../site/cards/wasm-assets/format.mjs");
+  assert.equal(
+    formatDiagnostics([{ id: "python", message: "SyntaxError: invalid syntax", severity: "Error", line: 2, col: 0, start: 0, end: 0 }]),
+    "line 2: SyntaxError: invalid syntax",
+  );
+});
