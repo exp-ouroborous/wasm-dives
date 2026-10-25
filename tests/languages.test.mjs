@@ -43,3 +43,9 @@ test("the C# card page takes its colour and logo from the shared table", async (
   assert.doesNotMatch(html, /--accent: #68217a/);
   assert.match(card, /language: "csharp"/);
 });
+
+test("Rust uses rust orange and the Rust logo", () => {
+  assert.equal(LANGUAGES.rust.label, "Rust");
+  assert.equal(LANGUAGES.rust.color, "#b7410e");
+  assert.equal(LANGUAGES.rust.logo.title, "Rust");
+});

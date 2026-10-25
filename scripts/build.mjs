@@ -7,7 +7,7 @@ import { buildYaegi } from "./yaegi.mjs";
 import { publishEngineSources } from "./engines.mjs";
 import { classicServiceWorker } from "./sw-bundle.mjs";
 import { vendorRuntime } from "./vendor.mjs";
-import { vendorWheels } from "./wheels.mjs";
+import { vendorPinned, vendorWheels } from "./wheels.mjs";
 import { copyLibraries } from "./libraries.mjs";
 
 const root = new URL("..", import.meta.url).pathname;
@@ -31,6 +31,14 @@ for (const [language, spec] of Object.entries(runtimes)) {
     // Yaegi built from source to WebAssembly, split into parts (see scripts/yaegi.mjs).
     groups[language] = [...(await buildYaegi(root, dist, spec.yaegi)), ...(spec.files ?? [])];
     console.log(`built yaegi ${spec.yaegi.version}: ${groups[language].length} files`);
+    continue;
+  }
+  if (spec.pinned) {
+    // Files no package manager delivers, pinned by hash (the Rust card's Miri build).
+    const pinned = await vendorPinned(root, dist, spec.pinned.vendorDir, spec.pinned.files);
+    await cp(join(root, "scripts/notices", spec.notice), join(dist, spec.pinned.vendorDir, "THIRD_PARTY.md"));
+    groups[language] = [...pinned, ...(spec.files ?? [])];
+    console.log(`vendored ${spec.pinned.source}: ${pinned.length} files`);
     continue;
   }
   const copied = await vendorRuntime(join(root, "node_modules"), dist, spec);
