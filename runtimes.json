@@ -70,7 +70,8 @@
       "run/cpp/engine-host.mjs",
       "run/cpp/engines/regex.cc",
       "run/cpp/engines/json.cc",
-      "run/cpp/engines/markdown.cc"
+      "run/cpp/engines/markdown.cc",
+      "run/cpp/engines/diff.cc"
     ],
     "libraries": [
       {
