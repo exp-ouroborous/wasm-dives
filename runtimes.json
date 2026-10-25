@@ -7,7 +7,8 @@
     },
     "files": [
       "run/csharp/worker.js",
-      "run/shared/runtime-worker.mjs"
+      "run/shared/runtime-worker.mjs",
+      "run/csharp/engines/regex.cs"
     ]
   },
   "go": {
