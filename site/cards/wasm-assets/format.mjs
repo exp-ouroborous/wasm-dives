@@ -36,7 +36,13 @@ export function formatRunResult({ ok, stdout, stderr, diagnostics, ms }) {
   if (ok) {
     parts.push(stdout.trimEnd() || "(no output)");
   } else {
-    parts.push(formatDiagnostics(diagnostics.filter((d) => d.severity === "Error")) || "(failed with no diagnostics)");
+    // A compile failure shows its errors; a runtime failure (exception, panic)
+    // shows whatever the program printed before it, then stderr below.
+    const errors = formatDiagnostics(diagnostics.filter((d) => d.severity === "Error"));
+    const printed = stdout.trimEnd();
+    if (errors) parts.push(errors);
+    else if (printed) parts.push(printed);
+    else if (!stderr) parts.push("(failed with no output)");
   }
   if (stderr) parts.push(`stderr:\n${stderr.trimEnd()}`);
   parts.push(`(${ms} ms)`);
