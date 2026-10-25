@@ -1,14 +1,15 @@
 // Everything a language card page does, shared by every language: theme and
 // logo, the sandboxed runner iframe, phase/progress/runtime reporting, the
 // scratchpad, experiments and probes, and Stop. A card's own card.mjs only
-// supplies its language, wording and programs.
+// supplies its language, wording and programs (and, optionally, run options
+// such as a C/C++ dialect).
 
 import { createRunnerClient, runnerOrigin } from "./runner-client.mjs";
 import { formatProgress, formatRunResult } from "./format.mjs";
 import { languageLogo, languageStyle } from "./languages.mjs";
 
-export function startLanguageCard({ language, runtimeLabel, phaseText, programs, doc = document, loc = location }) {
-  const { SCRATCHPAD_DEFAULT, EXPERIMENTS, PROBE_SOURCE } = programs;
+export function startLanguageCard({ language, runtimeLabel, phaseText, programs, scratchpadOptions, doc = document, loc = location }) {
+  const { SCRATCHPAD_DEFAULT, EXPERIMENTS, PROBE_SOURCE, PROBE_OPTIONS } = programs;
   const $ = (selector) => doc.querySelector(selector);
   doc.body.setAttribute("style", languageStyle(language));
   $("#language-logo").append(languageLogo(language, doc));
@@ -33,11 +34,11 @@ export function startLanguageCard({ language, runtimeLabel, phaseText, programs,
     stop.disabled = !busy;
   }
 
-  async function runInto(output, source) {
+  async function runInto(output, source, options) {
     setBusy(true);
     output.textContent = "Running…";
     try {
-      output.textContent = formatRunResult(await client.run(source));
+      output.textContent = formatRunResult(await client.run(source, options));
     } catch (error) {
       output.textContent = error.message === "stopped" ? "Stopped." : error.message;
       if (error.message !== "stopped") setStatus(error.message, "error");
@@ -76,7 +77,7 @@ export function startLanguageCard({ language, runtimeLabel, phaseText, programs,
   input.value = SCRATCHPAD_DEFAULT;
   const runScratchpad = $("#scratchpad-run");
   runButtons.push(runScratchpad);
-  runScratchpad.addEventListener("click", () => runInto($("#scratchpad-output"), input.value));
+  runScratchpad.addEventListener("click", () => runInto($("#scratchpad-output"), input.value, scratchpadOptions?.()));
   stop.addEventListener("click", () => client.stop());
 
   const experimentOutput = $("#experiment-output");
@@ -87,7 +88,7 @@ export function startLanguageCard({ language, runtimeLabel, phaseText, programs,
     button.textContent = experiment.title;
     button.addEventListener("click", () => {
       $("#experiment-blurb").textContent = experiment.blurb;
-      runInto(experimentOutput, experiment.source);
+      runInto(experimentOutput, experiment.source, experiment.options);
     });
     runButtons.push(button);
     $("#experiment-buttons").append(button);
@@ -95,5 +96,5 @@ export function startLanguageCard({ language, runtimeLabel, phaseText, programs,
 
   const probe = $("#probe-run");
   runButtons.push(probe);
-  probe.addEventListener("click", () => runInto($("#probe-output"), PROBE_SOURCE));
+  probe.addEventListener("click", () => runInto($("#probe-output"), PROBE_SOURCE, PROBE_OPTIONS));
 }

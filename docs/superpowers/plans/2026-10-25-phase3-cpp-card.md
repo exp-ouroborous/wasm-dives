@@ -26,7 +26,7 @@
 - **Card copy is exact:**
   - Title: "C and C++ in your browser".
   - Lede: "The real Clang compiler, built for WebAssembly, compiles your program to WebAssembly and runs it — nothing leaves the page."
-  - Notice: "C++ is compiled without exceptions (this libc++ build has none), so `throw` fails to link. Programs run with WASI: standard input is empty and there is no network or real filesystem."
+  - Notice: "C++ is compiled without exceptions (this libc++ build has none), so `throw` and `try` do not compile. Programs run with WASI: standard input is empty and there is no network or real filesystem."
 - **Routes:** `/learn/cpp` proxies `https://wasm-dives.pages.dev/cards/cpp`; `/run/cpp/` is never proxied.
 - **Notice file:** `run/vendor/yowasp-clang/22.0.0-git20542-10/THIRD_PARTY.md` lists YoWASP Clang (ISC), LLVM/Clang/LLD, libc++ and wasi-libc (Apache-2.0 WITH LLVM-exception) and browser_wasi_shim (MIT OR Apache-2.0).
 
