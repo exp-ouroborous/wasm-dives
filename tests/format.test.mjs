@@ -64,3 +64,11 @@ test("formatRunResult appends stderr under a label", async () => {
     "(no output)\n\nstderr:\nUnhandled exception\n\n(1 ms)",
   );
 });
+
+test("formatDiagnostics prints line:col for diagnostics that carry a line", async () => {
+  const { formatDiagnostics } = await import("../site/cards/wasm-assets/format.mjs");
+  assert.equal(
+    formatDiagnostics([{ id: "go", message: "undefined: x", severity: "Error", line: 2, col: 15, start: 0, end: 0 }]),
+    "2:15: undefined: x",
+  );
+});
