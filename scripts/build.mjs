@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { build } from "esbuild";
 import { assertPagesFileLimits, buildManifest, bundleOutputs } from "./manifest.mjs";
 import { publishDotnetRuntime } from "./dotnet.mjs";
+import { buildYaegi } from "./yaegi.mjs";
 import { classicServiceWorker } from "./sw-bundle.mjs";
 import { vendorRuntime } from "./vendor.mjs";
 
@@ -20,6 +21,12 @@ for (const [language, spec] of Object.entries(runtimes)) {
     // Our own .NET WebAssembly build (see runtimes/), published from source.
     groups[language] = [...(await publishDotnetRuntime(root, dist, spec.dotnet)), ...(spec.files ?? [])];
     console.log(`published ${spec.dotnet.project}: ${groups[language][0]}`);
+    continue;
+  }
+  if (spec.yaegi) {
+    // Yaegi built from source to WebAssembly, split into parts (see scripts/yaegi.mjs).
+    groups[language] = [...(await buildYaegi(root, dist, spec.yaegi)), ...(spec.files ?? [])];
+    console.log(`built yaegi ${spec.yaegi.version}: ${groups[language].length} files`);
     continue;
   }
   const copied = await vendorRuntime(join(root, "node_modules"), dist, spec);
