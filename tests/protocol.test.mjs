@@ -57,3 +57,10 @@ test("parseMessage rejects calls to unknown engines, non-object inputs and overs
   assert.equal(parseMessage({ ...base, input: { nested: { deep: 1 } } }), null);
   assert.equal(parseMessage({ ...base, input: { text: "x".repeat(1_000_001) } }), null);
 });
+
+test("engine inputs may also carry booleans and finite numbers", () => {
+  const message = { protocol: PROTOCOL, type: "call", id: "1", engine: "json", input: { action: "format", source: "{}", indent: 2, sort_keys: true, minify: false } };
+  assert.deepEqual(parseMessage(message), message);
+  assert.equal(parseMessage({ ...message, input: { indent: Infinity } }), null);
+  assert.equal(parseMessage({ ...message, input: { nested: [1] } }), null);
+});
