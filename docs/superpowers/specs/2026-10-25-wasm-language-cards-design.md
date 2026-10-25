@@ -40,7 +40,7 @@ Roslyn on .NET.
 | Python | Pyodide (existing dive) | moves onto the sandbox runner in a later phase |
 | C# | WasmSharp `@wasmsharp/core@0.10.2` (Roslyn on .NET WASM) | ~15 MB gzipped; single maintainer — pinned and self-hosted |
 | Go | Yaegi v0.16.1 (Go interpreter) built from source to WebAssembly by us | Owner decision 2026-10-25: GopherJS compiles Go to JavaScript, not WASM, so it is out. ~37 MB raw (~5–8 MB compressed), split into parts to fit Pages. The card says it is an interpreter with Go 1.22-era gaps (no `min`/`max`, no generic stdlib functions such as `slices.Sort`, no inference for two type parameters) and runs slower than compiled Go |
-| C/C++ | YoWASP Clang `@yowasp/clang` (pinned) | ~25 MB compressed; upstream archived 2026-03 — pin, mirror if needed; largest files exceed Pages' 25 MiB, so loaded from jsDelivr with verified hashes |
+| C/C++ | YoWASP Clang `@yowasp/clang@22.0.0-git20542-10` (pinned), programs run with `@bjorn3/browser_wasi_shim` | 105 MB unpacked (~21 MB brotli); upstream archived 2026-03, so we self-host it *(call)* — the two oversized files are split into parts like Go's, not loaded from jsDelivr. libc++ is built without exceptions, so C++ compiles with `-fno-exceptions`; the card says so |
 | Rust | rubrc (real rustc, WASI) | **Experimental** label; ~60 MB; needs COOP/COEP; author says not production-ready |
 
 Out: Java, Kotlin (owner decision), anything needing a server-side compile.
@@ -123,8 +123,8 @@ landed.
    card shell, C# card, `/learn/csharp/` proxy, `/learn` index split into
    language and tool rows.
 2. **Go card** (Yaegi compiled to WASM, split into parts).
-3. **C/C++ card** (YoWASP Clang, jsDelivr-hosted files through the same
-   verifying service worker).
+3. **C/C++ card** (YoWASP Clang, self-hosted; oversized files split into
+   verified parts).
 4. **Python card onto the sandbox runner.** The Pyodide scratchpad moves into
    the sandbox, and the remaining Pyodide loads get pinned hashes.
 5. **Rust card (experimental)**, with COOP/COEP scoped to its paths.
