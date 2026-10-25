@@ -7,7 +7,6 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io"
 	"regexp"
 	"sort"
@@ -128,18 +127,15 @@ func parse(source string) (*value, error) {
 // position turns an error into a 1-based line and column (in code points).
 func position(source string, err error) (int, int) {
 	offset := int64(len(source))
-	var syntax *json.SyntaxError
-	var custom *parseError
-	if errors.As(err, &syntax) {
-		offset = syntax.Offset
-	} else if errors.As(err, &custom) {
-		offset = custom.offset
+	// A type switch, not errors.As: Yaegi panics on errors.As with an interpreted type.
+	switch e := err.(type) {
+	case *json.SyntaxError:
+		offset = e.Offset
+	case *parseError:
+		offset = e.offset
 	}
 	if offset > int64(len(source)) {
 		offset = int64(len(source))
-	}
-	if offset > 0 {
-		offset-- // the decoder has read one byte past the problem
 	}
 	before := source[:offset]
 	line := strings.Count(before, "\n") + 1
@@ -356,7 +352,11 @@ func respond(fields map[string]any) string {
 
 func failure(source string, err error) string {
 	line, column := position(source, err)
-	return respond(map[string]any{"ok": false, "output": "", "tree": nil, "summary": map[string]any{}, "error": err.Error(), "line": line, "column": column})
+	message := err.Error()
+	if err == io.EOF || err == io.ErrUnexpectedEOF {
+		message = "Unexpected end of input"
+	}
+	return respond(map[string]any{"ok": false, "output": "", "tree": nil, "summary": map[string]any{}, "error": message, "line": line, "column": column})
 }
 
 func Handle(raw string) string {

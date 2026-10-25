@@ -60,7 +60,8 @@
       "run/shared/runtime-worker.mjs",
       "run/shared/parts.mjs",
       "run/cpp/engine-host.mjs",
-      "run/cpp/engines/regex.cc"
+      "run/cpp/engines/regex.cc",
+      "run/cpp/engines/json.cc"
     ]
   },
   "python": {
