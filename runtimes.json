@@ -56,5 +56,23 @@
       "run/shared/runtime-worker.mjs",
       "run/shared/parts.mjs"
     ]
+  },
+  "python": {
+    "package": "pyodide",
+    "version": "314.0.7",
+    "vendorDir": "run/vendor/pyodide/314.0.7",
+    "include": [
+      "pyodide.mjs",
+      "pyodide.asm.mjs",
+      "pyodide.asm.wasm",
+      "python_stdlib.zip",
+      "pyodide-lock.json"
+    ],
+    "notice": "pyodide.md",
+    "files": [
+      "run/python/worker.js",
+      "run/python/py-result.mjs",
+      "run/shared/runtime-worker.mjs"
+    ]
   }
 }

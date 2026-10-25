@@ -60,3 +60,8 @@ export function bundleOutputs(metafile, distDir, cwd = process.cwd()) {
     .map((output) => relative(distDir, resolve(cwd, output)).split(sep).join("/"))
     .sort();
 }
+
+/** Manifest group for a plain vendored runtime: its folder plus the runner's own files. */
+export function vendoredGroup(spec) {
+  return [spec.vendorDir, ...(spec.files ?? [])];
+}

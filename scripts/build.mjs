@@ -1,7 +1,7 @@
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { build } from "esbuild";
-import { assertPagesFileLimits, buildManifest, bundleOutputs } from "./manifest.mjs";
+import { assertPagesFileLimits, buildManifest, bundleOutputs, vendoredGroup } from "./manifest.mjs";
 import { publishDotnetRuntime } from "./dotnet.mjs";
 import { buildYaegi } from "./yaegi.mjs";
 import { classicServiceWorker } from "./sw-bundle.mjs";
@@ -69,7 +69,7 @@ for (const [language, spec] of Object.entries(runtimes)) {
     console.log(`vendored ${spec.package}@${spec.version}: ${copied.length} files, split ${spec.split.length}`);
     continue;
   }
-  groups[language] = fetched ?? [spec.vendorDir];
+  groups[language] = fetched ?? vendoredGroup(spec);
   console.log(`vendored ${spec.package}@${spec.version}: ${copied.length} files`);
 }
 
