@@ -8,6 +8,18 @@ import { toRunResult } from "./yaegi-result.mjs";
 
 const VENDOR = new URL("../vendor/yaegi/0.16.1/", import.meta.url);
 
+// Tool engines (engines/<name>.go), each loaded once into its own interpreter.
+const loaded = new Set();
+
+async function ensureEngine(name) {
+  if (loaded.has(name)) return;
+  const response = await fetch(new URL(`./engines/${name}.go`, import.meta.url));
+  if (!response.ok) throw new Error(`no ${name} engine for Go (HTTP ${response.status})`);
+  const failure = await globalThis.yaegiLoad(name, await response.text());
+  if (failure) throw new Error(failure);
+  loaded.add(name);
+}
+
 serveRuntime({
   async boot() {
     await import(new URL("wasm_exec.js", VENDOR).href); // defines globalThis.Go
@@ -20,5 +32,9 @@ serveRuntime({
   },
   async run(yaegiRun, source) {
     return toRunResult(await yaegiRun(source));
+  },
+  async call(_yaegiRun, name, input) {
+    await ensureEngine(name);
+    return JSON.parse(await globalThis.yaegiCall(name, JSON.stringify(input)));
   },
 });
