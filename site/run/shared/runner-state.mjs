@@ -2,6 +2,7 @@
 // testable without a browser.
 
 export const DOWNLOAD_FAILED = "Download failed — press Run to retry";
+export const BOOT_FAILED = "The runtime failed to start — press Run to retry";
 
 export const initialState = Object.freeze({ phase: "idle", pendingRunId: null, error: null });
 
@@ -21,6 +22,8 @@ export function runnerReducer(state, event) {
       return initialState;
     case "download-failed":
       return { phase: "idle", pendingRunId: null, error: DOWNLOAD_FAILED };
+    case "boot-failed":
+      return { phase: "idle", pendingRunId: null, error: BOOT_FAILED };
     default:
       return state;
   }

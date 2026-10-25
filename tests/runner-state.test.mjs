@@ -48,3 +48,10 @@ test("chooseLoadStrategy falls back to direct without service workers", () => {
   assert.equal(chooseLoadStrategy({ hasServiceWorker: false }), "direct");
   assert.equal(chooseLoadStrategy({ hasServiceWorker: true }), "service-worker");
 });
+
+test("boot-failed returns to idle with a retry message", () => {
+  assert.deepEqual(
+    runnerReducer(at("starting", { pendingRunId: "r1" }), { type: "boot-failed" }),
+    at("idle", { error: "The runtime failed to start — press Run to retry" }),
+  );
+});
