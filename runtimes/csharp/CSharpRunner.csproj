@@ -30,9 +30,12 @@
     <PackageReference Include="Basic.Reference.Assemblies.Net100" Version="1.8.13" />
     <!-- Markdown for the Markdown tool's engine (and visitor code). -->
     <PackageReference Include="Markdig" Version="1.4.0" GeneratePathProperty="true" />
+    <!-- Line diffs for the Text Diff tool's engine. -->
+    <PackageReference Include="DiffPlex" Version="1.9.0" GeneratePathProperty="true" />
   </ItemGroup>
   <ItemGroup>
     <!-- Roslyn needs a library's image to reference it; in WebAssembly there is no file path. -->
     <EmbeddedResource Include="$(PkgMarkdig)/lib/net10.0/Markdig.dll" LogicalName="Markdig.dll" Visible="false" />
+    <EmbeddedResource Include="$(PkgDiffPlex)/lib/net6.0/DiffPlex.dll" LogicalName="DiffPlex.dll" Visible="false" />
   </ItemGroup>
 </Project>
