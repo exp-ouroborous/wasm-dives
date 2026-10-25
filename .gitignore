@@ -6,3 +6,4 @@ dist/
 .playwright-mcp/
 runtimes/csharp/bin/
 runtimes/csharp/obj/
+.cache/
