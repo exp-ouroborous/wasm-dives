@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { PROTOCOL, isAllowedOrigin, parseMessage } from "../site/run/shared/protocol.mjs";
+import { PROTOCOL, isAllowedOrigin, parseMessage, rejectedCall } from "../site/run/shared/protocol.mjs";
 
 test("isAllowedOrigin accepts the site's own origins", () => {
   assert.equal(isAllowedOrigin("https://wordsfortheunwise.com"), true);
@@ -63,4 +63,17 @@ test("engine inputs may also carry booleans and finite numbers", () => {
   assert.deepEqual(parseMessage(message), message);
   assert.equal(parseMessage({ ...message, input: { indent: Infinity } }), null);
   assert.equal(parseMessage({ ...message, input: { nested: [1] } }), null);
+});
+
+test("the markdown engine is callable, with its features list and safe flag", () => {
+  const message = { protocol: PROTOCOL, type: "call", id: "1", engine: "markdown", input: { source: "# a", features: ["tables"], safe: true } };
+  assert.deepEqual(parseMessage(message), message);
+});
+
+test("rejectedCall names a well-formed call the runner refuses, so it can answer instead of hanging", () => {
+  assert.deepEqual(rejectedCall({ protocol: PROTOCOL, type: "call", id: "7", engine: "shell", input: {} }), { id: "7", error: "unknown engine: shell" });
+  assert.deepEqual(rejectedCall({ protocol: PROTOCOL, type: "call", id: "8", engine: "json", input: { x: { nested: 1 } } }), { id: "8", error: "invalid engine input" });
+  assert.equal(rejectedCall({ protocol: PROTOCOL, type: "call", engine: "json", input: {} }), null, "no id: nothing to answer");
+  assert.equal(rejectedCall({ protocol: "other", type: "call", id: "9" }), null);
+  assert.equal(rejectedCall({ protocol: PROTOCOL, type: "call", id: "1", engine: "json", input: {} }), null, "valid calls are not rejected");
 });

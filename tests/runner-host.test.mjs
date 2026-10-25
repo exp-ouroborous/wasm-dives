@@ -111,3 +111,12 @@ test("the runner host forwards engine calls and relays the reply", async () => {
   fromWorker(workers[0], { type: "called", id: "c1", ok: true, output: { match_count: 1 }, ms: 1 });
   assert.ok(parentMessages.some((m) => m.type === "called" && m.id === "c1" && m.output.match_count === 1));
 });
+
+test("a call the runner refuses gets an error reply instead of silence", async () => {
+  const { send, workers, parentMessages, control } = harness();
+  control.resolve(true);
+  send({ type: "call", id: "c9", engine: "no-such-engine", input: {} });
+  await tick();
+  assert.equal(workers.length, 0, "no worker is started for it");
+  assert.deepEqual(parentMessages.find((m) => m.type === "called"), { protocol: PROTOCOL, type: "called", id: "c9", ok: false, output: null, error: "unknown engine: no-such-engine", ms: 0 });
+});
