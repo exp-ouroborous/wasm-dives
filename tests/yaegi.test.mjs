@@ -51,3 +51,11 @@ test("runtimes.json pins Yaegi, its toolchain image and a Pages-safe part size",
   assert.match(runtimes.go.yaegi.image, /@sha256:[0-9a-f]{64}$/);
   assert.ok(runtimes.go.yaegi.partBytes <= 25 * 1024 * 1024);
 });
+
+test("each compiled-in library's LICENSE ships next to Yaegi's", async () => {
+  const { libraryLicenses } = await import("../scripts/yaegi.mjs");
+  assert.deepEqual(libraryLicenses({ libraries: ["github.com/yuin/goldmark@v1.8.6"] }), [
+    { from: "github.com/yuin/goldmark@v1.8.6/LICENSE", to: "LICENSE.goldmark" },
+  ]);
+  assert.deepEqual(libraryLicenses({}), []);
+});

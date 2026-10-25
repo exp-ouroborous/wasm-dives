@@ -27,6 +27,17 @@ public static partial class Runner
         global using System.Threading.Tasks;
         """;
 
+    // The framework plus the libraries the runner ships (embedded images, since
+    // assemblies have no file path in WebAssembly): Markdig.
+    static readonly ImmutableArray<MetadataReference> References = [.. Net100.References.All, Embedded("Markdig.dll")];
+
+    static MetadataReference Embedded(string name)
+    {
+        using var stream = typeof(Runner).Assembly.GetManifestResourceStream(name)
+            ?? throw new InvalidOperationException($"{name} is not embedded in the runner");
+        return MetadataReference.CreateFromStream(stream);
+    }
+
     static readonly CSharpParseOptions ParseOptions = new(LanguageVersion.Latest);
     static readonly SyntaxTree UsingsTree = CSharpSyntaxTree.ParseText(ImplicitUsings, ParseOptions, "Usings.g.cs");
     static readonly CSharpCompilationOptions CompilationOptions = new(
@@ -71,7 +82,7 @@ public static partial class Runner
     public static string LoadEngine(string name, string source)
     {
         var tree = CSharpSyntaxTree.ParseText(source, ParseOptions, $"{name}.cs");
-        var compilation = CSharpCompilation.Create($"Engine.{name}", [UsingsTree, tree], Net100.References.All, LibraryOptions);
+        var compilation = CSharpCompilation.Create($"Engine.{name}", [UsingsTree, tree], References, LibraryOptions);
         using var image = new MemoryStream();
         var emitted = compilation.Emit(image);
         if (!emitted.Success)
@@ -95,7 +106,7 @@ public static partial class Runner
     {
         var tree = CSharpSyntaxTree.ParseText(source, ParseOptions, "Program.cs");
         var compilation = CSharpCompilation.Create(
-            "Program", [UsingsTree, tree], Net100.References.All, CompilationOptions);
+            "Program", [UsingsTree, tree], References, CompilationOptions);
 
         using var image = new MemoryStream();
         var emitted = compilation.Emit(image);
