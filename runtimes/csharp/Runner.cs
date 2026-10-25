@@ -28,8 +28,8 @@ public static partial class Runner
         """;
 
     // The framework plus the libraries the runner ships (embedded images, since
-    // assemblies have no file path in WebAssembly): Markdig.
-    static readonly ImmutableArray<MetadataReference> References = [.. Net100.References.All, Embedded("Markdig.dll")];
+    // assemblies have no file path in WebAssembly): Markdig and DiffPlex.
+    static readonly ImmutableArray<MetadataReference> References = [.. Net100.References.All, Embedded("Markdig.dll"), Embedded("DiffPlex.dll")];
 
     static MetadataReference Embedded(string name)
     {

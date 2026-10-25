@@ -10,7 +10,8 @@
       "run/shared/runtime-worker.mjs",
       "run/csharp/engines/regex.cs",
       "run/csharp/engines/json.cs",
-      "run/csharp/engines/markdown.cs"
+      "run/csharp/engines/markdown.cs",
+      "run/csharp/engines/diff.cs"
     ]
   },
   "go": {
